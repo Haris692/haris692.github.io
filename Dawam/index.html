@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f5ede0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Dawam">
+<meta name="description" content="Dawam — Petit, mais constant. Ton compagnon spirituel quotidien.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Dawam — Petit, mais constant.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5ede0; --bg-card: #faeeda; --bg-glass: rgba(245,237,224,0.8);
+  --accent: #BA7517; --accent-dark: #8a6020; --accent-light: #faeeda;
+  --text: #3d2a0a; --text-secondary: #8a6020; --text-light: #b89060;
+  --green: #3B6D11; --green-light: #EAF3DE;
+  --border: rgba(186,117,23,0.2); --border-light: rgba(186,117,23,0.1);
+  --shadow: 0 2px 16px rgba(138,96,32,0.10);
+  --overlay: rgba(61,42,10,0.45);
+  --radius: 16px;
+  --font-display: 'Lora', Georgia, serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; background: var(--bg); }
+body { font-family: var(--font-body); background: var(--bg); height: 100vh; height: -webkit-fill-available; display: flex; flex-direction: column; overflow: hidden; }
+#app { width: 100%; max-width: 430px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; height: 100%; }
+.screen { display: none; flex-direction: column; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.screen.active { display: flex; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes splashOut {
+  0%   { opacity:1; transform:scale(1) translateY(0); }
+  30%  { opacity:1; transform:scale(1.04) translateY(-8px); }
+  100% { opacity:0; transform:scale(.92) translateY(-40px); }
+}
+@keyframes splashIn {
+  0%   { opacity:0; transform:translateY(30px); }
+  100% { opacity:1; transform:translateY(0); }
+}
+.splash-exiting { animation: splashOut .55s cubic-bezier(.4,0,.2,1) forwards !important; }
+.particle { position:fixed; width:6px; height:6px; border-radius:50%; pointer-events:none; z-index:999; }
+@keyframes checkPop {
+  0%  { transform: scale(0) rotate(-10deg); }
+  60% { transform: scale(1.3) rotate(4deg); }
+  100%{ transform: scale(1) rotate(0deg); }
+}
+@keyframes ringExpand {
+  0%  { transform: scale(.8); opacity: .9; }
+  100%{ transform: scale(2.4); opacity: 0; }
+}
+@keyframes starFloat {
+  0%  { opacity: 1; transform: translateY(0) scale(1); }
+  100%{ opacity: 0; transform: translateY(-50px) scale(.4); }
+}
+@keyframes xpPop {
+  0%  { opacity: 0; transform: scale(.5) translateY(4px); }
+  70% { opacity: 1; transform: scale(1.15) translateY(-2px); }
+  100%{ opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes overlayFadeIn  { from{ opacity: 0; } to{ opacity: 1; } }
+@keyframes overlayFadeOut { from{ opacity: 1; } to{ opacity: 0; } }
+@keyframes starCenter {
+  0%  { opacity: 0; transform: translate(-50%,-50%) scale(0) rotate(-20deg); }
+  40% { opacity: 1; transform: translate(-50%,-50%) scale(1.3) rotate(5deg); }
+  65% { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+  85% { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+  100%{ opacity: 0; transform: translate(-50%,-50%) scale(.8) rotate(0deg); }
+}
+@keyframes msgReveal {
+  0%  { opacity: 0; transform: translate(-50%,-50%) translateY(20px); }
+  50% { opacity: 0; transform: translate(-50%,-50%) translateY(20px); }
+  75% { opacity: 1; transform: translate(-50%,-50%) translateY(0); }
+  90% { opacity: 1; transform: translate(-50%,-50%) translateY(0); }
+  100%{ opacity: 0; transform: translate(-50%,-50%) translateY(-10px); }
+}
+@keyframes pA { 0%{opacity:.9;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(-60px,-80px) scale(0)} }
+@keyframes pB { 0%{opacity:.9;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(60px,-80px) scale(0)} }
+@keyframes pC { 0%{opacity:.9;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(-40px,-100px) scale(0)} }
+@keyframes pD { 0%{opacity:.9;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(40px,-100px) scale(0)} }
+@keyframes pE { 0%{opacity:.9;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(80px,-60px) scale(0)} }
+@keyframes pF { 0%{opacity:.9;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(-80px,-60px) scale(0)} }
+@keyframes scaleIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+.fade-up { animation: fadeUp .45s cubic-bezier(.22,1,.36,1) both; }
+.fade-in { animation: fadeIn .35s ease both; }
+.scale-in { animation: scaleIn .4s cubic-bezier(.22,1,.36,1) both; }
+.btn-primary { display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;background:var(--accent);color:#fff8e8;font-family:var(--font-body);font-size:15px;font-weight:600;transition:opacity .15s,transform .1s; }
+.btn-primary:active { opacity:.85;transform:scale(.98); }
+.btn-secondary { background:none;border:none;cursor:pointer;font-family:var(--font-body);font-size:14px;color:var(--text-secondary);padding:10px;width:100%;text-align:center;transition:opacity .15s; }
+.btn-secondary:active { opacity:.6; }
+.card { background:var(--bg-card);border-radius:var(--radius);border:.5px solid var(--border);padding:16px 18px;box-shadow:var(--shadow); }
+
+/* BOTTOM NAV */
+#bottom-nav { display:none;flex-direction:row;background:rgba(245,237,224,.72);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);border-top:.5px solid rgba(186,117,23,.12);padding:8px 0;padding-bottom:max(8px,env(safe-area-inset-bottom));position:sticky;bottom:0;z-index:100;box-shadow:0 -1px 0 rgba(255,255,255,.6) inset; }
+#bottom-nav.visible { display:flex; }
+.nav-tab { flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border:none;background:none;font-family:var(--font-body);transition:opacity .15s; }
+.nav-tab svg { width:22px;height:22px;stroke-width:1.8; }
+.nav-tab span { font-size:10px;font-weight:500;color:var(--text-light); }
+.nav-tab.active svg { stroke:var(--accent); }
+.nav-tab.active span { color:var(--accent); }
+.nav-tab:not(.active) svg { stroke:var(--text-light); }
+
+/* SPLASH */
+#splash { background:var(--bg);justify-content:center;align-items:center;padding:60px 32px 40px;min-height:100vh; }
+.splash-logo { font-family:var(--font-display);font-size:52px;font-weight:700;color:var(--accent);letter-spacing:-1px;animation:fadeUp .6s ease both; }
+.splash-tagline { font-family:var(--font-display);font-size:15px;font-style:italic;color:var(--text-secondary);margin-top:6px;margin-bottom:40px;animation:fadeUp .6s .1s ease both; }
+.splash-sep { width:60px;height:1px;background:var(--border);margin-bottom:32px;animation:fadeIn .6s .2s ease both; }
+.splash-label { font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-light);margin-bottom:16px;animation:fadeUp .5s .3s ease both; }
+.splash-quote { font-family:var(--font-display);font-size:16px;font-style:italic;font-weight:400;color:var(--text);line-height:1.65;text-align:center;animation:fadeUp .5s .4s ease both; }
+.splash-actions { margin-top:auto;width:100%;display:flex;flex-direction:column;gap:8px;animation:fadeUp .5s .6s ease both; }
+
+/* ONBOARDING */
+#onboarding { background:var(--bg);min-height:100vh; }
+.ob-page { display:none;flex-direction:column;padding:56px 24px 0;min-height:100%; }
+.ob-page.active { display:flex; }
+.ob-dots { display:flex;gap:5px;justify-content:center;margin-bottom:36px; }
+.ob-dot { width:6px;height:6px;border-radius:3px;background:var(--border);transition:all .3s; }
+.ob-dot.active { width:20px;background:var(--green); }
+.ob-dot.done { background:rgba(59,109,17,.35); }
+.ob-emoji-circle { width:80px;height:80px;border-radius:40px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;box-shadow:0 0 0 8px rgba(186,117,23,.08); }
+.ob-label { font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--green);text-align:center;margin-bottom:8px; }
+.ob-title { font-family:var(--font-display);font-size:26px;font-weight:600;color:var(--text);text-align:center;line-height:1.3;margin-bottom:14px; }
+.ob-desc { font-size:14px;color:var(--text-secondary);text-align:center;line-height:1.65;margin-bottom:24px;padding:14px 16px;background:var(--bg-card);border-radius:14px;border:.5px solid var(--border-light); }
+.ob-options { display:flex;flex-direction:column;gap:10px;width:100%; }
+.ob-option { display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:var(--bg-card);border:1.5px solid var(--border);cursor:pointer;transition:all .2s; }
+.ob-option.selected { border-color:var(--green);background:rgba(59,109,17,.07); }
+.ob-option-emoji { font-size:24px; }
+.ob-option-text { flex:1; }
+.ob-option-label { font-size:15px;font-weight:600;color:var(--text); }
+.ob-option-desc { font-size:12px;color:var(--text-light);margin-top:2px; }
+.ob-radio { width:20px;height:20px;border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.ob-option.selected .ob-radio { border-color:var(--green); }
+.ob-radio-dot { width:10px;height:10px;border-radius:5px;background:var(--green);display:none; }
+.ob-option.selected .ob-radio-dot { display:block;animation:checkPop .25s ease; }
+.ob-name-input { width:100%;padding:16px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg-card);font-family:var(--font-body);font-size:18px;font-weight:600;color:var(--text);outline:none;transition:border-color .2s; }
+.ob-name-input:focus { border-color:var(--accent); }
+.ob-bottom { margin-top:auto;padding:20px 0 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;bottom:0;background:var(--bg); }
+.ob-back { width:44px;height:44px;border-radius:22px;background:rgba(186,117,23,.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px; }
+.ob-counter { font-size:13px;font-weight:500;color:var(--text-light); }
+.ob-next { display:flex;align-items:center;gap:8px;padding:12px 22px;border-radius:20px;border:none;cursor:pointer;font-family:var(--font-body);font-size:14px;font-weight:600;color:#fff;transition:opacity .15s; }
+.ob-next:disabled { opacity:.4;cursor:not-allowed; }
+.ob-features { display:flex;flex-direction:column;gap:8px;width:100%; }
+.ob-feature { display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-card);border-radius:12px;border:.5px solid var(--border-light); }
+.ob-feature-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px; }
+.ob-feature-text { font-size:14px;font-weight:600;color:var(--text); }
+.ob-result-palier { text-align:center;padding:20px;background:var(--accent-light);border-radius:16px;border:.5px solid var(--border);margin-bottom:20px; }
+.ob-result-emoji { font-size:48px;margin-bottom:8px; }
+.ob-result-name { font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--accent-dark);margin-bottom:4px; }
+.ob-result-desc { font-size:13px;color:var(--text-secondary);line-height:1.5; }
+.ob-result-msg { font-family:var(--font-display);font-size:14px;font-style:italic;color:var(--text-secondary);text-align:center;line-height:1.6;padding:16px;background:rgba(59,109,17,.06);border-radius:12px;margin-top:16px; }
+/* RESULT PAGE */
+.ob-result-step { display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-card);border-radius:12px;border:.5px solid var(--border-light);margin-bottom:8px; }
+.ob-result-step-emoji { font-size:20px;flex-shrink:0; }
+.ob-result-step-info { flex:1;min-width:0; }
+.ob-result-step-title { font-size:13px;font-weight:600;color:var(--text); }
+.ob-result-step-time { font-size:11px;color:var(--text-light);margin-top:2px; }
+.ob-result-step-xp { font-size:11px;font-weight:600;color:var(--accent);flex-shrink:0; }
+.ob-result-step.edit-mode { cursor:pointer;transition:all .2s; }
+.ob-result-step.edit-mode.selected { border-color:var(--green);background:rgba(59,109,17,.06); }
+.ob-result-check { width:20px;height:20px;border-radius:10px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg-card);transition:all .2s; }
+.ob-result-step.selected .ob-result-check { background:var(--green);border-color:var(--green); }
+.ob-edit-toggle { width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:none;cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--text-secondary);margin-top:10px;transition:all .2s; }
+.ob-edit-toggle.active { border-color:var(--green);color:var(--green);background:rgba(59,109,17,.06); }
+.ob-step-badge { font-size:10px;font-weight:600;color:var(--accent);background:var(--accent-light);padding:2px 7px;border-radius:8px;flex-shrink:0; }
+
+/* PATH */
+#path { background:var(--bg); }
+.path-hero { padding:52px 20px 24px;padding-top:max(52px,calc(44px + env(safe-area-inset-top))); }
+.path-hero-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:var(--accent-light);border:.5px solid var(--border); }
+.path-hero-chip span { font-size:11px;font-weight:600;color:var(--accent-dark); }
+.path-hero-name { font-family:var(--font-display);font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px; }
+.path-hero-motiv { font-size:13px;font-style:italic;color:var(--text-secondary);line-height:1.55;margin-bottom:16px;opacity:.85; }
+.path-hero-sep { height:1px;background:var(--border);opacity:.4;margin-bottom:14px; }
+.path-prog-row { display:flex;justify-content:space-between;align-items:center;margin-bottom:6px; }
+.path-prog-label { font-size:13px;font-weight:600;color:var(--text); }
+.path-prog-right { font-size:12px;color:var(--text-secondary); }
+.path-prog-bar { height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:14px; }
+.path-prog-fill { height:100%;background:var(--accent);border-radius:3px;transition:width .6s cubic-bezier(.34,1.2,.64,1); }
+.path-pills { display:flex;gap:8px; }
+.path-pill-constance { display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:rgba(59,109,17,.1); }
+.path-pill-dot { width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite; }
+.path-pill-text { font-size:12px;font-weight:600;color:var(--green); }
+.path-body { padding:0 16px 80px;display:flex;flex-direction:column;gap:14px;transition:opacity .2s ease; }
+.next-action-card { background:var(--accent-light);border-radius:var(--radius);padding:18px;border:.5px solid var(--border); }
+.next-action-label { font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px; }
+.next-action-row { display:flex;align-items:center;gap:12px;margin-bottom:14px; }
+.next-action-icon { width:42px;height:42px;border-radius:11px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:.5px solid var(--border-light); }
+.next-action-title { font-size:15px;font-weight:600;color:var(--text); }
+.next-action-sub { font-size:12px;color:var(--text-secondary);margin-top:2px; }
+.next-action-xp { font-size:13px;font-weight:600;color:var(--accent);flex-shrink:0; }
+.stats-row { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+.stats-card { background:var(--bg-card);border-radius:14px;padding:14px;border:.5px solid var(--border);box-shadow:var(--shadow); }
+.stats-label { font-size:10px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px; }
+.stats-percent { font-size:24px;font-weight:700;color:var(--accent);font-family:var(--font-display); }
+.stats-count { font-size:11px;color:var(--text-secondary);margin-top:2px;margin-bottom:8px; }
+.stats-mini-bar { height:4px;background:var(--border);border-radius:2px;overflow:hidden; }
+.stats-mini-fill { height:100%;background:var(--accent);border-radius:2px;transition:width .6s ease; }
+.week-theme { font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px; }
+.week-sub { font-size:11px;color:var(--text-secondary); }
+.section-sep { font-size:10px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.6px;padding:0 2px; }
+.section-block { background:var(--bg-card);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;box-shadow:var(--shadow); }
+.section-block.past-block { opacity:.58;border-color:var(--border-light); }
+.section-block.past-block .section-header-label { color:var(--text-secondary); }
+.section-header { display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:.5px solid var(--border-light);cursor:pointer;user-select:none; }
+.section-header-left { display:flex;align-items:center;gap:8px; }
+.section-header-emoji { font-size:16px; }
+.section-header-label { font-size:13px;font-weight:600;color:var(--text); }
+.section-header-badge { font-size:11px;color:var(--text-secondary);background:var(--bg);padding:2px 8px;border-radius:10px;border:.5px solid var(--border-light); }
+.section-current-badge { font-size:10px;font-weight:600;color:var(--green);background:rgba(59,109,17,.1);padding:2px 8px;border-radius:10px; }
+.path-group-label { display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:16px 4px 6px;color:var(--text-light); }
+.path-group-label.now { color:var(--accent);font-size:11px; }
+.path-group-label.past { opacity:.55; }
+.missed-badge { font-size:10px;font-weight:600;color:var(--text-light);flex-shrink:0; }
+.section-items { display:flex;flex-direction:column; }
+.item-row { display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;border-bottom:.5px solid var(--border-light);transition:background .15s;user-select:none;position:relative; }
+.item-row:last-child { border-bottom:none; }
+.item-row:active { background:rgba(186,117,23,.06); }
+.item-row.checked { background:rgba(59,109,17,.04); }
+.item-row.locked { opacity: 0.42; cursor: default; }
+.item-row.locked:active { background: none; }
+.item-check { width:22px;height:22px;border-radius:11px;flex-shrink:0;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .2s;background:var(--bg-card);position:relative; }
+.item-row.checked .item-check { background:var(--green);border-color:var(--green); }
+.item-check-icon { display:none; }
+.item-row.checked .item-check-icon { display:block;animation:checkPop .25s ease; }
+.item-text { flex:1;min-width:0; }
+.item-title { font-size:13px;font-weight:500;color:var(--text);line-height:1.3; }
+.item-row.checked .item-title { text-decoration:line-through;color:var(--text-light); }
+.item-sub { font-size:11px;color:var(--text-light);margin-top:1px; }
+.item-xp { font-size:11px;font-weight:600;color:var(--accent);flex-shrink:0; }
+.item-check-ring { position:absolute;width:22px;height:22px;border-radius:11px;border:2px solid #3B6D11;pointer-events:none;opacity:0; }
+.item-check-ring.fire { animation:ringExpand .5s ease-out forwards; }
+.item-star-wrap { position:absolute;right:44px;top:50%;transform:translateY(-50%);display:flex;gap:2px;pointer-events:none; }
+.item-star { font-size:12px;opacity:0;color:#BA7517; }
+.item-star.fire { animation:starFloat .6s ease-out forwards; }
+.item-star:nth-child(2).fire { animation-delay:.08s; }
+.item-star:nth-child(3).fire { animation-delay:.16s; }
+.item-xp-badge { font-size:11px;font-weight:600;color:#BA7517;flex-shrink:0;opacity:0;transition:opacity .2s; }
+.item-xp-badge.show { opacity:1;animation:xpPop .4s cubic-bezier(.34,1.56,.64,1) both; }
+#dawam-completion-overlay { display:none;position:fixed;inset:0;background:rgba(61,42,10,.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:9999; }
+#dawam-completion-overlay.show { display:block;animation:overlayFadeIn .4s ease forwards; }
+#dawam-completion-overlay.hide { animation:overlayFadeOut .4s ease forwards; }
+#dawam-center-star { position:fixed;top:42%;left:50%;transform:translate(-50%,-50%);font-size:90px;color:#BA7517;opacity:0;pointer-events:none;text-shadow:0 0 40px rgba(186,117,23,.7); }
+#dawam-center-star.fire { animation:starCenter 2.8s cubic-bezier(.22,1,.36,1) forwards; }
+#dawam-completion-msg { position:fixed;top:60%;left:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;pointer-events:none;width:260px; }
+#dawam-completion-msg.fire { animation:msgReveal 2.8s ease forwards; }
+#dawam-completion-msg h2 { font-family:'Lora',Georgia,serif;font-size:24px;font-weight:600;color:#f7e8c0;margin-bottom:10px;line-height:1.3; }
+#dawam-completion-msg p { font-size:14px;font-style:italic;color:rgba(247,232,192,.75);line-height:1.6; }
+.dawam-cp { position:fixed;top:42%;left:50%;width:8px;height:8px;border-radius:50%;opacity:0;pointer-events:none;z-index:10000; }
+.dawam-cp.fire-a { animation:pA .9s .3s ease-out forwards; }
+.dawam-cp.fire-b { animation:pB .9s .35s ease-out forwards; }
+.dawam-cp.fire-c { animation:pC .9s .25s ease-out forwards; }
+.dawam-cp.fire-d { animation:pD .9s .4s ease-out forwards; }
+.dawam-cp.fire-e { animation:pE .9s .3s ease-out forwards; }
+.dawam-cp.fire-f { animation:pF .9s .28s ease-out forwards; }
+.all-done-card { text-align:center;padding:24px;background:var(--bg-card);border-radius:var(--radius);border:.5px solid var(--border); }
+.all-done-emoji { font-size:36px;margin-bottom:8px; }
+.all-done-text { font-family:var(--font-display);font-size:16px;font-weight:500;color:var(--green); }
+
+/* PROFIL */
+#profil { background:var(--bg); }
+.profil-header { padding:52px 20px 20px;padding-top:max(52px,calc(44px + env(safe-area-inset-top))); }
+.profil-title { font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--text);margin-bottom:4px; }
+.profil-sub { font-size:13px;color:var(--text-secondary); }
+.profil-body { padding:0 16px 80px;display:flex;flex-direction:column;gap:14px; }
+.profil-identity { background:var(--accent-light);border-radius:var(--radius);padding:20px;border:.5px solid var(--border);display:flex;align-items:center;gap:14px; }
+.profil-avatar { width:56px;height:56px;border-radius:28px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:22px;font-weight:700;color:#fff8e8;flex-shrink:0; }
+.profil-name { font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--text); }
+.profil-palier-text { font-size:13px;color:var(--text-secondary);margin-top:3px; }
+.stats-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+.stat-card { background:var(--bg-card);border-radius:14px;padding:16px;border:.5px solid var(--border);box-shadow:var(--shadow); }
+.stat-card-value { font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--accent); }
+.stat-card-label { font-size:12px;color:var(--text-secondary);margin-top:3px; }
+.stat-card-sub { font-size:11px;color:var(--text-light);margin-top:2px; }
+.profil-section-title { font-size:11px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.6px;padding:0 2px; }
+.profil-menu { background:var(--bg-card);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;box-shadow:var(--shadow); }
+.profil-menu-item { display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:.5px solid var(--border-light);cursor:pointer;transition:background .15s; }
+.profil-menu-item:last-child { border-bottom:none; }
+.profil-menu-item:active { background:rgba(186,117,23,.05); }
+.profil-menu-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+.profil-menu-text { flex:1;font-size:14px;font-weight:500;color:var(--text); }
+.profil-menu-arrow { color:var(--text-light);font-size:18px; }
+.toggle-switch { width:44px;height:26px;border-radius:13px;background:var(--border);position:relative;transition:background .25s;flex-shrink:0; }
+.toggle-switch.on { background:var(--accent); }
+.toggle-switch::after { content:'';width:20px;height:20px;border-radius:10px;background:#fff;position:absolute;top:3px;left:3px;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2); }
+.toggle-switch.on::after { transform:translateX(18px); }
+.days-timeline { display:flex;flex-direction:column; }
+.day-row { display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--border-light); }
+.day-row:last-child { border-bottom:none; }
+.day-row-label { min-width:82px;font-size:12px;font-weight:500;color:var(--text-secondary); }
+.day-row.is-today .day-row-label { color:var(--accent);font-weight:600; }
+.day-row.no-data .day-row-label { opacity:.45; }
+.day-row-bar { flex:1;height:7px;background:var(--border-light);border-radius:4px;overflow:hidden; }
+.day-row-fill { height:100%;border-radius:4px;transition:width .6s cubic-bezier(.34,1.2,.64,1); }
+.day-row-count { min-width:36px;text-align:right;font-size:11px;font-weight:600;color:var(--text-light); }
+.day-row.is-today .day-row-count { color:var(--accent); }
+.day-row.no-data .day-row-count { opacity:.35; }
+.dawam-footer { text-align:center;padding:24px 16px;font-family:var(--font-display);font-size:13px;font-style:italic;color:var(--text-light); }
+
+/* DETAIL MODAL */
+#detail-modal { display:none;position:fixed;inset:0;z-index:300;background:var(--overlay);align-items:flex-end;backdrop-filter:blur(2px); }
+#detail-modal.show { display:flex; }
+.detail-sheet { background:var(--bg);border-radius:28px 28px 0 0;width:100%;max-height:92vh;overflow-y:auto;animation:fadeUp .4s cubic-bezier(.22,1,.36,1); }
+.detail-handle { width:36px;height:4px;border-radius:2px;background:var(--border);margin:14px auto 0; }
+.detail-hero { padding:24px 24px 20px;background:linear-gradient(160deg,var(--accent-light) 0%,var(--bg) 100%);text-align:center; }
+.detail-hero-emoji { font-size:52px;display:block;margin-bottom:12px;animation:scaleIn .4s .1s cubic-bezier(.22,1,.36,1) both; }
+.detail-hero-title { font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--text);line-height:1.3;animation:fadeUp .4s .15s ease both; }
+.detail-hero-pill { display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--accent);border-radius:20px;margin-top:10px;animation:fadeUp .4s .2s ease both; }
+.detail-hero-pill span { font-size:12px;font-weight:600;color:#fff8e8; }
+.detail-body { padding:4px 20px 44px; }
+.detail-quote { text-align:center;padding:20px 8px 8px;animation:fadeUp .4s .25s ease both; }
+.detail-quote-marks { font-size:36px;color:var(--border);line-height:1;font-family:Georgia;display:block;margin-bottom:4px; }
+.detail-quote-text { font-family:var(--font-display);font-size:14px;font-style:italic;color:var(--text);line-height:1.8; }
+.detail-quote-source { font-size:11px;color:var(--text-light);margin-top:8px;font-weight:500; }
+.detail-divider { height:1px;background:var(--border);margin:16px 0;opacity:.5; }
+.detail-section-label { font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px; }
+.detail-section-label::after { content:'';flex:1;height:1px;background:var(--border);opacity:.5; }
+.detail-timeline { display:flex;flex-direction:column; }
+.detail-step-row { display:flex;gap:14px;align-items:flex-start;padding-bottom:18px; }
+.detail-step-row:last-child { padding-bottom:0; }
+.detail-step-left { display:flex;flex-direction:column;align-items:center;gap:0; }
+.detail-step-num { width:28px;height:28px;border-radius:14px;background:var(--accent);color:#fff8e8;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(186,117,23,.3); }
+.detail-step-line { width:1.5px;flex:1;min-height:14px;background:linear-gradient(to bottom,var(--accent),var(--border));margin-top:4px;opacity:.35; }
+.detail-step-row:last-child .detail-step-line { display:none; }
+.detail-step-text { font-size:13.5px;color:var(--text);line-height:1.7;flex:1;padding-top:4px; }
+.detail-tip { background:rgba(59,109,17,.07);border-radius:16px;padding:14px 16px;margin-top:18px;display:flex;gap:12px;align-items:flex-start;border:.5px solid rgba(59,109,17,.15); }
+.detail-tip-icon { font-size:20px;flex-shrink:0;margin-top:1px; }
+.detail-tip-text { font-size:13px;color:var(--text);line-height:1.7;font-style:italic; }
+.detail-cta { margin-top:24px;display:flex;flex-direction:column;gap:8px; }
+.btn-done { display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:16px;border:none;cursor:pointer;font-family:var(--font-body);font-size:15px;font-weight:600;background:var(--green);color:#fff;transition:opacity .15s,transform .1s; }
+.btn-done:active { opacity:.85;transform:scale(.98); }
+.btn-done.undone { background:rgba(186,117,23,.12);color:var(--accent); }
+
+/* INSTALL BANNER */
+#install-banner { display:none;position:sticky;top:0;z-index:200;background:var(--accent);padding:10px 16px;align-items:center;gap:10px; }
+#install-banner.show { display:flex; }
+#install-banner p { flex:1;font-size:13px;font-weight:500;color:#fff8e8;line-height:1.4; }
+#install-banner button { background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:8px;color:#fff;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;white-space:nowrap; }
+#install-banner .close-banner { background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;padding:0 4px; }
+
+/* UPDATE BANNER */
+#update-banner { display:none;position:sticky;top:0;z-index:201;background:var(--green);padding:10px 16px;align-items:center;gap:10px; }
+#update-banner.show { display:flex; }
+#update-banner p { flex:1;font-size:13px;font-weight:500;color:#fff;line-height:1.4; }
+#update-banner button { background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.45);border-radius:8px;color:#fff;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;white-space:nowrap; }
+
+/* TOAST */
+#toast { position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff8e8;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999; }
+#toast.show { opacity:1;transform:translateX(-50%) translateY(0); }
+
+/* AUBE TIMER */
+#aube-timer { display:none;position:fixed;inset:0;z-index:400;background:var(--bg);flex-direction:column; }
+#aube-timer.show { display:flex; }
+.timer-header { display:flex;align-items:center;justify-content:space-between;padding:max(20px,calc(16px + env(safe-area-inset-top))) 20px 12px; }
+.timer-header-title { font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text); }
+.timer-close { width:36px;height:36px;border-radius:18px;background:var(--border-light);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.timer-progress-bar { height:3px;background:var(--border);margin:0 20px 0; }
+.timer-progress-fill { height:100%;background:var(--accent);border-radius:3px;transition:width .5s ease; }
+.timer-body { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 24px 12px;text-align:center;overflow-y:auto; }
+.timer-step-label { font-size:11px;font-weight:600;color:var(--text-light);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px; }
+.timer-emoji { font-size:60px;margin-bottom:14px; }
+.timer-step-title { font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--text);margin-bottom:4px; }
+.timer-step-subtitle { font-size:14px;color:var(--text-secondary);margin-bottom:20px; }
+.timer-countdown { font-family:var(--font-display);font-size:52px;font-weight:700;color:var(--accent);margin-bottom:6px;font-variant-numeric:tabular-nums;min-height:64px;display:flex;align-items:center;justify-content:center; }
+.timer-countdown.ending { color:var(--green);animation:pulse 1s ease-in-out infinite; }
+.timer-step-desc { font-size:13px;color:var(--text-secondary);line-height:1.75;max-width:320px;margin:0 auto; }
+.timer-footer { padding:12px 20px;padding-bottom:max(20px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px; }
+.timer-chourouk-info { font-size:11px;color:var(--text-light);text-align:center;padding:4px 0; }
+.timer-next-btn { display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;background:var(--accent);color:#fff8e8;font-family:var(--font-body);font-size:15px;font-weight:600;transition:opacity .15s; }
+.timer-next-btn:active { opacity:.85; }
+.timer-skip-btn { background:none;border:none;cursor:pointer;font-family:var(--font-body);font-size:13px;color:var(--text-light);padding:6px;text-align:center; }
+
+/* THEME MODAL */
+#theme-modal { display:none;position:fixed;inset:0;z-index:350;background:var(--overlay);align-items:flex-end; }
+#theme-modal.show { display:flex; }
+.theme-sheet { background:var(--bg);border-radius:24px 24px 0 0;width:100%;max-height:85vh;overflow-y:auto;animation:fadeUp .35s ease; }
+.theme-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px 12px; }
+.theme-card { border-radius:14px;border:2px solid var(--border);padding:14px;cursor:pointer;transition:all .2s;background:var(--bg-card); }
+.theme-card.active { border-color:var(--accent); }
+.theme-card:active { opacity:.75; }
+.theme-card-emoji { font-size:22px;margin-bottom:8px; }
+.theme-card-swatches { display:flex;gap:5px;margin-bottom:8px; }
+.theme-swatch { width:22px;height:22px;border-radius:6px;border:.5px solid rgba(0,0,0,.12); }
+.theme-card-name { font-size:12px;font-weight:600;color:var(--text); }
+
+/* ABOUT MODAL */
+#about-modal { display:none;position:fixed;inset:0;z-index:300;background:var(--overlay);align-items:flex-end; }
+#about-modal.show { display:flex; }
+#feedback-modal { display:none;position:fixed;inset:0;z-index:300;background:var(--overlay);align-items:flex-end; }
+#feedback-modal.show { display:flex; }
+.fb-sheet { background:var(--bg);border-radius:24px 24px 0 0;width:100%;padding:0;animation:fadeUp .35s ease; }
+.fb-content { padding:20px 24px 40px;display:flex;flex-direction:column;gap:16px; }
+.fb-title { font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text); }
+.fb-sub { font-size:13px;color:var(--text-secondary);line-height:1.5; }
+.fb-ratings { display:flex;gap:10px; }
+.fb-rating { flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg-card);cursor:pointer;transition:all .2s; }
+.fb-rating.selected { border-color:var(--green);background:rgba(59,109,17,.07); }
+.fb-rating-emoji { font-size:28px; }
+.fb-rating-label { font-size:11px;font-weight:600;color:var(--text-secondary); }
+.fb-rating.selected .fb-rating-label { color:var(--green); }
+.fb-textarea { width:100%;padding:14px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg-card);font-family:var(--font-body);font-size:14px;color:var(--text);outline:none;resize:none;min-height:90px;transition:border-color .2s; }
+.fb-textarea:focus { border-color:var(--accent); }
+.fb-textarea::placeholder { color:var(--text-light); }
+.fb-sent { text-align:center;padding:20px 0; }
+.fb-sent-emoji { font-size:48px;margin-bottom:10px; }
+.fb-sent-msg { font-family:var(--font-display);font-size:16px;color:var(--text);line-height:1.5; }
+.about-sheet { background:var(--bg);border-radius:24px 24px 0 0;padding:0;width:100%;max-height:88vh;overflow-y:auto;animation:fadeUp .35s ease; }
+.about-handle { width:40px;height:4px;border-radius:2px;background:var(--border);margin:12px auto 0; }
+.about-content { padding:20px 24px 40px; }
+.about-title { font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px; }
+.about-interpel { font-family:var(--font-display);font-size:15px;font-style:italic;color:var(--text-secondary);margin-bottom:20px;line-height:1.6; }
+.about-verset { background:var(--accent-light);border-radius:12px;border-left:3px solid var(--accent);padding:14px 16px;margin:16px 0; }
+.about-verset p { font-family:var(--font-display);font-size:15px;font-style:italic;color:var(--text);line-height:1.6; }
+.about-verset small { font-size:12px;color:var(--text-secondary);margin-top:6px;display:block; }
+.about-citation { background:rgba(59,109,17,.07);border-radius:12px;border-left:3px solid var(--green);padding:14px 16px;margin:16px 0; }
+.about-citation p { font-family:var(--font-display);font-size:14px;font-style:italic;color:var(--text);line-height:1.6; }
+.about-para { font-size:15px;color:var(--text);line-height:1.7;margin-bottom:14px; }
+.about-section-title { font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--text);margin:24px 0 10px; }
+.about-question { font-family:var(--font-display);font-size:16px;font-style:italic;color:var(--accent);text-align:center;margin-top:24px;line-height:1.6; }
+.about-footer { text-align:center;padding-top:24px;font-family:var(--font-display);font-size:13px;font-style:italic;color:var(--text-light); }
+/* ── Invoc Popup ── */
+#invoc-popup { position:fixed;inset:0;z-index:500;display:none;align-items:flex-end;background:var(--overlay); }
+#invoc-popup.show { display:flex;animation:overlayFadeIn .2s ease; }
+.invoc-popup-sheet { background:var(--bg);border-radius:24px 24px 0 0;width:100%;max-width:430px;margin:0 auto;max-height:92vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.2,1,.4,1); }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.invoc-popup-header { display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;flex-shrink:0; }
+.invoc-popup-title { font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--text);flex:1; }
+.invoc-popup-counter { font-size:13px;font-weight:600;color:var(--accent);margin-right:10px; }
+.invoc-popup-close { width:32px;height:32px;border-radius:50%;background:var(--bg-card);border:none;font-size:18px;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0; }
+.invoc-progress-track { height:3px;background:var(--border);flex-shrink:0;margin:0 0 2px; }
+.invoc-progress-fill { height:100%;background:var(--accent);border-radius:2px;transition:width .35s cubic-bezier(.4,0,.2,1); }
+.invoc-popup-body { overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch; }
+/* Step card */
+.invoc-step-card { padding:28px 22px 12px;animation:stepIn .3s cubic-bezier(.2,1,.4,1) both; }
+@keyframes stepIn { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+.invoc-step-repeat { display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:20px;font-size:12px;font-weight:700;padding:3px 12px;margin-bottom:18px; }
+.invoc-step-arabic { font-family:'Amiri',serif;font-size:26px;line-height:1.8;color:var(--text);text-align:right;direction:rtl;margin-bottom:16px; }
+.invoc-step-phonetic { font-family:var(--font-display);font-size:13px;font-style:italic;color:var(--accent-dark);line-height:1.65;margin-bottom:12px; }
+.invoc-step-french { font-size:14px;color:var(--text);line-height:1.7;margin-bottom:12px; }
+.invoc-step-source { font-size:11px;color:var(--text-light);font-style:italic; }
+/* Single (dhikr) */
+.invoc-popup-single { padding:28px 22px 16px;text-align:center; }
+.invoc-popup-single .invoc-arabic { font-family:'Amiri',serif;font-size:30px;line-height:1.8;text-align:center;margin-bottom:14px; }
+/* Footer */
+.invoc-popup-footer { padding:12px 16px max(16px,env(safe-area-inset-bottom));border-top:.5px solid var(--border);flex-shrink:0; }
+.invoc-nav-row { display:flex;gap:10px; }
+.btn-invoc-prev { padding:14px 18px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg-card);color:var(--text-secondary);font-size:18px;cursor:pointer;flex-shrink:0; }
+.btn-invoc-next { flex:1;padding:14px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer;transition:transform .12s; }
+.btn-invoc-next:active { transform:scale(.97); }
+.btn-invoc-done { width:100%;padding:15px;border-radius:14px;border:none;background:var(--accent);color:#fff;font-family:var(--font-body);font-size:16px;font-weight:600;cursor:pointer;transition:transform .15s,background .3s;position:relative;overflow:hidden; }
+.btn-invoc-done:active { transform:scale(.97); }
+.btn-invoc-done.done { background:var(--green); }
+@keyframes popCheck { 0%{transform:scale(0) rotate(-15deg)} 65%{transform:scale(1.25) rotate(4deg)} 100%{transform:scale(1) rotate(0)} }
+.btn-invoc-done .done-check { display:none;animation:popCheck .4s cubic-bezier(.34,1.56,.64,1) both; }
+.btn-invoc-done.done .done-label { display:none; }
+.btn-invoc-done.done .done-check { display:inline; }
+.popup-spark { position:absolute;pointer-events:none;border-radius:50%;animation:sparkFly .6s ease-out forwards; }
+@keyframes sparkFly { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
+/* ── Invocations ── */
+.invoc-tabs-bar { display:flex;gap:6px;padding:14px 16px 10px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:.5px solid var(--border); }
+.invoc-tab { flex:1;padding:8px 4px;border:1.5px solid var(--border);background:var(--bg-card);border-radius:10px;font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .18s;line-height:1.2; }
+.invoc-tab.active { background:var(--accent);border-color:var(--accent);color:#fff; }
+.invoc-list { padding:12px 16px 100px; }
+.invoc-card { background:var(--bg-card);border-radius:var(--radius);padding:18px 16px 14px;margin-bottom:12px;border:.5px solid var(--border); }
+.invoc-repeat { display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:20px;font-size:11px;font-weight:700;padding:2px 9px;margin-bottom:12px; }
+.invoc-arabic { font-family:'Amiri',serif;font-size:22px;line-height:1.75;color:var(--text);text-align:right;direction:rtl;margin-bottom:10px; }
+.invoc-phonetic { font-family:var(--font-display);font-size:13px;font-style:italic;color:var(--accent-dark);line-height:1.6;margin-bottom:8px; }
+.invoc-french { font-family:var(--font-body);font-size:14px;color:var(--text);line-height:1.6;margin-bottom:10px; }
+.invoc-source { font-size:11px;color:var(--text-light);font-style:italic; }
+.invoc-section-title { font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em;padding:14px 0 8px;margin:0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- UPDATE BANNER -->
+<div id="update-banner">
+  <p>Nouvelle version disponible ✨</p>
+  <button onclick="applyUpdate()">Mettre à jour</button>
+</div>
+
+<!-- INSTALL BANNER (iOS) -->
+<div id="install-banner">
+  <p>Installe Dawam sur ton écran d'accueil pour l'utiliser hors-ligne.</p>
+  <button onclick="showInstallInstructions()">Installer</button>
+  <button class="close-banner" onclick="closeBanner()">✕</button>
+</div>
+
+<!-- SPLASH -->
+<div class="screen active" id="splash">
+  <p class="splash-logo">Dawam</p>
+  <p class="splash-tagline">Petit, mais constant.</p>
+  <div class="splash-sep"></div>
+  <p class="splash-label">À chaque moment son action</p>
+  <p class="splash-quote">"Ton âge est ton capital. L'enjeu n'est pas d'agir comme tu veux, quand tu veux — mais d'accomplir l'action appropriée au moment opportun."</p>
+  <div id="cycle-wrap" style="width:100%;margin:24px 0;">
+    <svg id="cycle-svg" width="100%" viewBox="0 0 300 300" style="display:block;transform-origin:center;transition:transform .4s cubic-bezier(.34,1.56,.64,1), opacity .35s ease;">
+      <defs>
+        <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f0e0c0" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#f5ede0" stop-opacity="0"/>
+        </radialGradient>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 2L8 5L2 8" fill="none" stroke="#BA7517" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 2L8 5L2 8" fill="none" stroke="rgba(50,70,120,.45)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <circle cx="150" cy="150" r="112" fill="url(#bgGlow)"/>
+      <circle cx="150" cy="150" r="90" fill="none" stroke="rgba(186,117,23,.1)" stroke-width="8"/>
+      <circle cx="150" cy="150" r="90" fill="none" stroke="rgba(186,117,23,.15)" stroke-width="1.5"/>
+      <path d="M 150 60 A 90 90 0 0 1 240 150" fill="none" stroke="rgba(201,147,10,.4)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 240 150 A 90 90 0 0 1 150 240" fill="none" stroke="rgba(186,117,23,.3)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 150 240 A 90 90 0 0 1 60 150" fill="none" stroke="rgba(40,60,110,.2)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 60 150 A 90 90 0 0 1 150 60" fill="none" stroke="rgba(40,60,110,.15)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="150" cy="60" r="26" fill="#fff8e8" stroke="#c9930a" stroke-width="1.5"/>
+      <text x="150" y="53" text-anchor="middle" font-size="17">🌅</text>
+      <text x="150" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#8a6020" font-family="DM Sans,sans-serif" letter-spacing=".5">MATIN</text>
+      <circle cx="240" cy="150" r="26" fill="#fff8e8" stroke="#c9930a" stroke-width="1.5"/>
+      <text x="240" y="143" text-anchor="middle" font-size="17">☀️</text>
+      <text x="240" y="158" text-anchor="middle" font-size="9" font-weight="700" fill="#8a6020" font-family="DM Sans,sans-serif" letter-spacing=".5">MIDI</text>
+      <circle cx="150" cy="240" r="26" fill="#fdf0e0" stroke="#BA7517" stroke-width="1.5"/>
+      <text x="150" y="233" text-anchor="middle" font-size="17">🌇</text>
+      <text x="150" y="248" text-anchor="middle" font-size="9" font-weight="700" fill="#8a6020" font-family="DM Sans,sans-serif" letter-spacing=".5">SOIR</text>
+      <circle cx="60" cy="150" r="26" fill="#1a2d4a" stroke="#4a6090" stroke-width="1.5"/>
+      <text x="60" y="143" text-anchor="middle" font-size="17">🌙</text>
+      <text x="60" y="160" text-anchor="middle" font-size="9" font-weight="700" fill="#8fb0d0" font-family="DM Sans,sans-serif" letter-spacing=".5">NUIT</text>
+      <circle cx="150" cy="150" r="36" fill="#f5ede0" stroke="rgba(186,117,23,.2)" stroke-width="1"/>
+      <text x="150" y="145" text-anchor="middle" font-size="20" fill="#BA7517">✦</text>
+      <text x="150" y="162" text-anchor="middle" font-size="8" fill="#8a6020" font-weight="600" font-family="DM Sans,sans-serif" letter-spacing=".5">DAWAM</text>
+      <path d="M 193 76 Q 216 94 228 120" fill="none" stroke="rgba(186,117,23,.4)" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arr)"/>
+      <path d="M 228 180 Q 216 206 193 224" fill="none" stroke="rgba(186,117,23,.3)" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arr)"/>
+      <path d="M 107 224 Q 84 206 72 180" fill="none" stroke="rgba(50,70,120,.3)" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arr2)"/>
+      <path d="M 72 120 Q 84 94 107 76" fill="none" stroke="rgba(50,70,120,.2)" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arr2)"/>
+    </svg>
+  </div>
+  <div class="splash-actions">
+    <button class="btn-primary" onclick="goToOnboarding()">Commencer</button>
+    <button class="btn-secondary" onclick="showAbout()">En savoir plus →</button>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="screen" id="onboarding">
+  <!-- Page 0: Welcome -->
+  <div class="ob-page active" data-page="0">
+    <div class="ob-dots" id="dots-0"></div>
+    <div class="ob-emoji-circle">🕌</div>
+    <p class="ob-label">Bismillah</p>
+    <h1 class="ob-title">Bienvenue dans Dawam</h1>
+    <p class="ob-desc">"L'enjeu n'est pas d'agir comme tu veux, quand tu veux, mais d'accomplir l'action appropriée au moment opportun."</p>
+    <div class="ob-features">
+      <div class="ob-feature"><div class="ob-feature-icon" style="background:rgba(59,109,17,.1)">🌙</div><span class="ob-feature-text">Prières de la nuit</span></div>
+      <div class="ob-feature"><div class="ob-feature-icon" style="background:rgba(186,117,23,.1)">📿</div><span class="ob-feature-text">Invocations du matin et du soir</span></div>
+      <div class="ob-feature"><div class="ob-feature-icon" style="background:rgba(74,144,217,.1)">📖</div><span class="ob-feature-text">Lecture du Coran</span></div>
+      <div class="ob-feature"><div class="ob-feature-icon" style="background:rgba(212,53,126,.1)">🌱</div><span class="ob-feature-text">Constance — sans pression</span></div>
+    </div>
+    <div class="ob-bottom">
+      <div style="width:44px"></div>
+      <span class="ob-counter">1 / 10</span>
+      <button class="ob-next" style="background:var(--green)" onclick="obNext()">Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 1: Prénom -->
+  <div class="ob-page" data-page="1">
+    <div class="ob-dots" id="dots-1"></div>
+    <div class="ob-emoji-circle">🤲</div>
+    <p class="ob-label">Fais connaissance</p>
+    <h1 class="ob-title">Comment tu t'appelles ?</h1>
+    <p class="ob-desc">Pour personnaliser ton expérience, dis-nous ton prénom.</p>
+    <input class="ob-name-input" type="text" placeholder="Ton prénom…" id="name-input" oninput="checkNameInput()" autocomplete="given-name">
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">2 / 10</span>
+      <button class="ob-next" id="name-next" style="background:var(--green)" onclick="obNext()" disabled>Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 2: Salat -->
+  <div class="ob-page" data-page="2">
+    <div class="ob-dots" id="dots-2"></div>
+    <div class="ob-emoji-circle">🕌</div>
+    <p class="ob-label">Question 1 sur 5</p>
+    <h1 class="ob-title">La prière</h1>
+    <p class="ob-desc">Sois honnête avec toi-même — c'est la première étape.</p>
+    <div class="ob-options" data-key="salat">
+      <div class="ob-option" data-value="0" onclick="selectOption(this)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Peu ou pas encore</div><div class="ob-option-desc">Je commence mon chemin</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="2" onclick="selectOption(this)"><span class="ob-option-emoji">🌿</span><div class="ob-option-text"><div class="ob-option-label">2 à 4 prières</div><div class="ob-option-desc">Pas encore les 5 régulièrement</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="5" onclick="selectOption(this)"><span class="ob-option-emoji">🌳</span><div class="ob-option-text"><div class="ob-option-label">Les 5 prières</div><div class="ob-option-desc">Régulièrement, alhamdulillah</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+    </div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">3 / 10</span>
+      <button class="ob-next" id="q1-next" style="background:var(--green)" onclick="obNext()" disabled>Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 3: Coran -->
+  <div class="ob-page" data-page="3">
+    <div class="ob-dots" id="dots-3"></div>
+    <div class="ob-emoji-circle">📖</div>
+    <p class="ob-label">Question 2 sur 5</p>
+    <h1 class="ob-title">Le Coran</h1>
+    <p class="ob-desc">La lecture quotidienne du Coran est un pilier du programme.</p>
+    <div class="ob-options" data-key="quran">
+      <div class="ob-option" data-value="0" onclick="selectOption(this)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Pas encore régulier</div><div class="ob-option-desc">Je lis peu en ce moment</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="1" onclick="selectOption(this)"><span class="ob-option-emoji">🌿</span><div class="ob-option-text"><div class="ob-option-label">Parfois</div><div class="ob-option-desc">Pas encore quotidiennement</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="2" onclick="selectOption(this)"><span class="ob-option-emoji">🌳</span><div class="ob-option-text"><div class="ob-option-label">Wird quotidien</div><div class="ob-option-desc">J'ai un wird régulier</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+    </div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">4 / 10</span>
+      <button class="ob-next" id="q2-next" style="background:var(--green)" onclick="obNext()" disabled>Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 4: Prière de nuit -->
+  <div class="ob-page" data-page="4">
+    <div class="ob-dots" id="dots-4"></div>
+    <div class="ob-emoji-circle">🌙</div>
+    <p class="ob-label">Question 3 sur 5</p>
+    <h1 class="ob-title">La prière de nuit</h1>
+    <p class="ob-desc">Le pilier fondamental du programme spirituel quotidien.</p>
+    <div class="ob-options" data-key="witr">
+      <div class="ob-option" data-value="0" onclick="selectOption(this)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Pas encore</div><div class="ob-option-desc">Je n'ai pas encore cette habitude</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="1" onclick="selectOption(this)"><span class="ob-option-emoji">🌿</span><div class="ob-option-text"><div class="ob-option-label">Parfois</div><div class="ob-option-desc">De temps en temps</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="2" onclick="selectOption(this)"><span class="ob-option-emoji">🌳</span><div class="ob-option-text"><div class="ob-option-label">Régulièrement</div><div class="ob-option-desc">Prière de nuit + programme nocturne</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+    </div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">5 / 10</span>
+      <button class="ob-next" id="q3-next" style="background:var(--green)" onclick="obNext()" disabled>Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 5: Situation de vie -->
+  <div class="ob-page" data-page="5">
+    <div class="ob-dots" id="dots-5"></div>
+    <div class="ob-emoji-circle">🧭</div>
+    <p class="ob-label">Question 4 sur 5</p>
+    <h1 class="ob-title">Ta situation de vie</h1>
+    <p class="ob-desc">Pour adapter ton parcours à ton rythme de vie.</p>
+    <div class="ob-options" data-key="type">
+      <div class="ob-option" data-value="worker" onclick="selectOption(this)"><span class="ob-option-emoji">💼</span><div class="ob-option-text"><div class="ob-option-label">Actif / Travailleur</div><div class="ob-option-desc">Journées chargées, sessions courtes</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="student" onclick="selectOption(this)"><span class="ob-option-emoji">📚</span><div class="ob-option-text"><div class="ob-option-label">Étudiant</div><div class="ob-option-desc">Temps d'étude à intégrer au programme</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="married" onclick="selectOption(this)"><span class="ob-option-emoji">🏡</span><div class="ob-option-text"><div class="ob-option-label">En famille</div><div class="ob-option-desc">Actes relationnels inclus dans le parcours</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+    </div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">6 / 10</span>
+      <button class="ob-next" id="q4-next" style="background:var(--green)" onclick="obNext()" disabled>Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 6: Intentions -->
+  <div class="ob-page" data-page="6">
+    <div class="ob-dots" id="dots-6"></div>
+    <div class="ob-emoji-circle">🎯</div>
+    <p class="ob-label">Question 5 sur 5</p>
+    <h1 class="ob-title">Tes intentions</h1>
+    <p class="ob-desc">Choisis une ou plusieurs intentions — elles guideront ton message quotidien.</p>
+    <div class="ob-options" data-key="goal" data-multi="true">
+      <div class="ob-option" data-value="taqwa" onclick="selectOption(this)"><span class="ob-option-emoji">💚</span><div class="ob-option-text"><div class="ob-option-label">Me rapprocher d'Allah</div><div class="ob-option-desc">Renforcer mon lien et ma dévotion</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="habits" onclick="selectOption(this)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Bâtir des habitudes</div><div class="ob-option-desc">Être constant dans mes adorations</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="serenity" onclick="selectOption(this)"><span class="ob-option-emoji">🕊️</span><div class="ob-option-text"><div class="ob-option-label">Trouver la sérénité</div><div class="ob-option-desc">Paix du cœur et équilibre intérieur</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="knowledge" onclick="selectOption(this)"><span class="ob-option-emoji">📚</span><div class="ob-option-text"><div class="ob-option-label">Apprendre ma religion</div><div class="ob-option-desc">Mieux comprendre et pratiquer l'Islam</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+    </div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">7 / 10</span>
+      <button class="ob-next" id="q5-next" style="background:var(--green)" onclick="obNext()" disabled>Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 7: Ville -->
+  <div class="ob-page" data-page="7">
+    <div class="ob-dots" id="dots-7"></div>
+    <div class="ob-emoji-circle">🕌</div>
+    <p class="ob-label">Horaires de prière</p>
+    <h1 class="ob-title">Ta ville</h1>
+    <p class="ob-desc">Pour adapter ton programme aux horaires de prière exacts. Optionnel — tu pourras le modifier plus tard.</p>
+    <input class="ob-name-input" type="text" placeholder="Ex: Paris, Casablanca, Dubaï…" id="city-input" oninput="checkCityInput()" autocomplete="off">
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">8 / 10</span>
+      <button class="ob-next" id="city-next" style="background:var(--green)" onclick="obNext()">Voir mon programme →</button>
+    </div>
+  </div>
+  <!-- Page 8: Thème -->
+  <div class="ob-page" data-page="8">
+    <div class="ob-dots" id="dots-8"></div>
+    <div class="ob-emoji-circle">🎨</div>
+    <p class="ob-label">Personnalise</p>
+    <h1 class="ob-title">Choisis ton thème</h1>
+    <p class="ob-desc">Tu pourras le changer à tout moment depuis ton profil.</p>
+    <div id="ob-theme-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%"></div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">9 / 10</span>
+      <button class="ob-next" style="background:var(--green)" onclick="obNext()">Suivant →</button>
+    </div>
+  </div>
+  <!-- Page 9: Notifications -->
+  <div class="ob-page" data-page="9">
+    <div class="ob-dots" id="dots-9"></div>
+    <div class="ob-emoji-circle">🔔</div>
+    <p class="ob-label">Rappels intelligents</p>
+    <h1 class="ob-title">Rester constant ?</h1>
+    <p class="ob-desc">Reçois un rappel quotidien calé sur les vrais horaires de prière de ta ville.</p>
+    <div class="ob-options">
+      <div class="ob-option" id="ob-notif-yes" onclick="obChooseNotif(true, this)">
+        <span class="ob-option-emoji">🔔</span>
+        <div class="ob-option-text">
+          <div class="ob-option-label">Oui, active les rappels</div>
+          <div class="ob-option-desc">Notifs basées sur Fajr et Isha</div>
+        </div>
+        <div class="ob-radio"><div class="ob-radio-dot"></div></div>
+      </div>
+      <div class="ob-option" id="ob-notif-no" onclick="obChooseNotif(false, this)">
+        <span class="ob-option-emoji">🔕</span>
+        <div class="ob-option-text">
+          <div class="ob-option-label">Pas maintenant</div>
+          <div class="ob-option-desc">Activable depuis le profil</div>
+        </div>
+        <div class="ob-radio"><div class="ob-radio-dot"></div></div>
+      </div>
+    </div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">10 / 10</span>
+      <button class="ob-next" id="ob-notif-next" style="background:var(--green)" onclick="obNextFromNotifs()" disabled>Voir mon programme →</button>
+    </div>
+  </div>
+  <!-- Page 10: Programme proposé + personnalisation -->
+  <div class="ob-page" data-page="10">
+    <div class="ob-dots" id="dots-10"></div>
+    <p class="ob-label" style="text-align:center;margin-bottom:6px">Ton programme</p>
+    <h1 class="ob-title" style="margin-bottom:20px">Voici ton point de départ</h1>
+    <div id="result-content"></div>
+    <div class="ob-bottom">
+      <button class="ob-back" onclick="obBack()">←</button>
+      <span class="ob-counter">Étape finale</span>
+      <button class="ob-next" style="background:var(--green)" onclick="finishOnboarding()">Commencer →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PATH -->
+<div class="screen" id="path">
+  <div class="path-hero fade-up">
+    <div class="path-hero-name" id="hero-name">Bonjour</div>
+    <div class="path-hero-motiv" id="hero-motiv"></div>
+    <div class="path-hero-sep"></div>
+    <div class="path-prog-row">
+      <span class="path-prog-label" id="prog-label">0 / 0 objectifs</span>
+      <span class="path-prog-right" id="prog-right">Commence par une étape</span>
+    </div>
+    <div class="path-prog-bar"><div class="path-prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="path-pills">
+      <div class="path-pill-constance"><div class="path-pill-dot"></div><span class="path-pill-text" id="pill-constance">Semaine 1</span></div>
+      <div class="path-hero-chip"><span id="hero-chip">🌱 Débutant</span></div>
+    </div>
+  </div>
+  <div class="path-body" id="path-body"></div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- INVOCATIONS -->
+<div class="screen" id="invocations">
+  <div class="invoc-tabs-bar">
+    <button class="invoc-tab active" onclick="switchInvocTab('matin',this)">🌅 Matin</button>
+    <button class="invoc-tab" onclick="switchInvocTab('soir',this)">🌙 Soir</button>
+    <button class="invoc-tab" onclick="switchInvocTab('dhikr',this)">📿 Dhikr</button>
+  </div>
+  <div id="invoc-content" class="invoc-list"></div>
+</div>
+
+<!-- PROFIL -->
+<div class="screen" id="profil">
+  <div class="profil-header fade-up">
+    <div class="profil-title">Mon profil</div>
+    <div class="profil-sub">Petit, mais constant.</div>
+  </div>
+  <div class="profil-body">
+    <div class="profil-identity scale-in">
+      <div class="profil-avatar" id="profil-avatar">?</div>
+      <div>
+        <div class="profil-name" id="profil-name">—</div>
+        <div class="profil-palier-text" id="profil-palier">—</div>
+      </div>
+    </div>
+    <div class="stats-grid fade-up" style="animation-delay:.1s">
+      <div class="stat-card"><div class="stat-card-value" id="stat-constance">0</div><div class="stat-card-label">Jours de constance</div><div class="stat-card-sub">Cette semaine</div></div>
+      <div class="stat-card"><div class="stat-card-value" id="stat-actions">0</div><div class="stat-card-label">Actions accomplies</div><div class="stat-card-sub">Aujourd'hui</div></div>
+      <div class="stat-card"><div class="stat-card-value" id="stat-total">0</div><div class="stat-card-label">Total jours actifs</div><div class="stat-card-sub">Depuis le début</div></div>
+      <div class="stat-card"><div class="stat-card-value" id="stat-palier">1</div><div class="stat-card-label">Palier actuel</div><div class="stat-card-sub" id="stat-palier-name">Débutant</div></div>
+    </div>
+    <div class="profil-section-title fade-up" style="animation-delay:.15s">Activité récente</div>
+    <div class="card fade-up" style="animation-delay:.2s;padding:16px">
+      <div id="days-timeline"></div>
+    </div>
+    <div class="profil-section-title fade-up" style="animation-delay:.25s">Paramètres</div>
+    <div class="profil-menu fade-up" style="animation-delay:.3s">
+      <div class="profil-menu-item" onclick="toggleNotifs()"><div class="profil-menu-icon" style="background:rgba(186,117,23,.1)">🔔</div><span class="profil-menu-text">Rappels quotidiens</span><div class="toggle-switch" id="notif-toggle"></div></div>
+      <div class="profil-menu-item" onclick="toggleDarkMode()"><div class="profil-menu-icon" style="background:rgba(15,25,35,.1)">🌙</div><span class="profil-menu-text">Mode sombre</span><div class="toggle-switch" id="dark-toggle"></div></div>
+      <div class="profil-menu-item" onclick="showAbout()"><div class="profil-menu-icon" style="background:rgba(59,109,17,.1)">📖</div><span class="profil-menu-text">À propos de Dawam</span><span class="profil-menu-arrow">›</span></div>
+      <div class="profil-menu-item" onclick="showFeedbackModal()"><div class="profil-menu-icon" style="background:rgba(74,158,218,.1)">💬</div><span class="profil-menu-text">Donner mon avis</span><span class="profil-menu-arrow">›</span></div>
+      <div class="profil-menu-item" onclick="showThemeModal()"><div class="profil-menu-icon" style="background:rgba(107,79,160,.1)">🎨</div><span class="profil-menu-text">Changer le thème</span><span class="profil-menu-arrow">›</span></div>
+      <div class="profil-menu-item" onclick="resetApp()"><div class="profil-menu-icon" style="background:rgba(186,117,23,.1)">🔄</div><span class="profil-menu-text">Recommencer l'onboarding</span><span class="profil-menu-arrow">›</span></div>
+    </div>
+    <div class="dawam-footer">Dawam · Petit, mais constant.</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="bottom-nav">
+  <button class="nav-tab active" onclick="showTab('path',this)" id="tab-path">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Accueil</span>
+  </button>
+  <button class="nav-tab" onclick="showTab('invocations',this)" id="tab-invocations">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke-width="1.8"/><path d="M8 12h8M12 8v8" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Invocations</span>
+  </button>
+  <button class="nav-tab" onclick="showTab('profil',this)" id="tab-profil">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Profil</span>
+  </button>
+</nav>
+
+<!-- INVOC POPUP -->
+<div id="invoc-popup" onclick="if(event.target===this)closeInvocPopup()">
+  <div class="invoc-popup-sheet">
+    <div class="invoc-popup-header">
+      <div class="invoc-popup-title" id="invoc-popup-title"></div>
+      <span class="invoc-popup-counter" id="invoc-popup-counter"></span>
+      <button class="invoc-popup-close" onclick="closeInvocPopup()">×</button>
+    </div>
+    <div class="invoc-progress-track" id="invoc-progress-track" style="display:none">
+      <div class="invoc-progress-fill" id="invoc-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="invoc-popup-body" id="invoc-popup-body"></div>
+    <div class="invoc-popup-footer" id="invoc-popup-footer"></div>
+  </div>
+</div>
+
+<!-- THEME MODAL -->
+<div id="theme-modal">
+  <div class="theme-sheet">
+    <div class="about-handle"></div>
+    <div style="padding:20px 20px 12px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--text)">Apparence</div>
+      <button onclick="closeThemeModal()" style="background:rgba(128,128,128,.12);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--text-secondary);padding:0 20px 16px;line-height:1.5">Choisis un thème pour personnaliser ton expérience.</p>
+    <div class="theme-grid" id="theme-grid"></div>
+    <div style="padding:12px 20px;padding-bottom:max(28px,env(safe-area-inset-bottom))">
+      <button class="btn-primary" onclick="closeThemeModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT MODAL -->
+<div id="about-modal">
+  <div class="about-sheet">
+    <div class="about-handle"></div>
+    <div class="about-content">
+      <div class="about-title">À chaque moment son action</div>
+      <div class="about-interpel">Ô mon frère croyant, ô ma sœur croyante,</div>
+      <div class="about-verset">
+        <p>« C'est Lui qui a créé la mort et la vie afin de vous éprouver [et voir] qui de vous agit le mieux. »</p>
+        <small>Sourate al-Mulk, verset 2</small>
+      </div>
+      <p class="about-para">Entre la vie et la mort, s'étend un temps d'action pour l'être humain, autrement dit : un champ dédié à l'adoration. Ton âge est ton capital, il t'appartient donc d'organiser ton temps entre les obligations et les différents engagements, afin que certains n'empiètent pas sur d'autres.</p>
+      <p class="about-para">L'enjeu n'est pas d'agir comme tu veux, quand tu veux, mais d'accomplir l'action appropriée au moment opportun. Tu dois donc discerner ce que requiert chaque instant : œuvre du cœur, de la langue ou des membres, et t'y appliquer avec soin, afin qu'elle prenne place là où Dieu la veut, et qu'elle soit agréée par Lui – exalté soit-Il.</p>
+      <div class="about-citation">
+        <p>« Sache qu'il est des œuvres propres au jour que Dieu n'accepte pas la nuit, et des œuvres propres à la nuit que Dieu n'accepte pas le jour. »</p>
+      </div>
+      <div class="about-section-title">Le passage du temps de l'habitude au temps de l'adoration</div>
+      <div class="about-verset">
+        <p>« Quiconque, homme ou femme, accomplit une œuvre vertueuse tout en étant croyant, Nous lui ferons vivre une vie pleine de bien. »</p>
+        <small>Sourate an-Naḥl, verset 97</small>
+      </div>
+      <p class="about-para">C'est donc par la foi et les œuvres vertueuses que s'accomplit le bonheur véritable. Mais le croyant se doit de baliser sa vie quotidienne par des repères clairs, afin que son pas soit fermement ancré dans le temps de l'adoration et de l'engagement, et non dans celui de l'habitude ou de la distraction.</p>
+      <div class="about-citation">
+        <p>« Celui qui passe un jour de sa vie sans avoir accompli un droit dû, ou rempli une obligation, ou fondé une noblesse, ou mérité une louange, ou établi un bien, ou recherché un savoir — a trahi son jour et s'est montré injuste envers lui-même. »</p>
+      </div>
+      <p class="about-question">Alors… comment commenceras-tu ta journée ? Comment la termineras-tu ? Et quelle est la clé du passage du temps de l'habitude au temps de l'adoration ?</p>
+      <div class="about-footer">Petit, mais constant.</div>
+      <br>
+      <button class="btn-primary" onclick="closeAbout()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- FEEDBACK MODAL -->
+<div id="feedback-modal">
+  <div class="fb-sheet">
+    <div class="about-handle"></div>
+    <div class="fb-content" id="fb-content"></div>
+  </div>
+</div>
+
+<!-- AUBE TIMER OVERLAY -->
+<div id="aube-timer">
+  <div class="timer-header">
+    <span class="timer-header-title">Séance de l'aube</span>
+    <button class="timer-close" onclick="closeAubeTimer()">✕</button>
+  </div>
+  <div class="timer-progress-bar"><div class="timer-progress-fill" id="aube-progress-fill" style="width:0%"></div></div>
+  <div class="timer-body">
+    <div class="timer-step-label" id="aube-step-label">Étape 1 / 6</div>
+    <div class="timer-emoji" id="aube-step-emoji">📿</div>
+    <div class="timer-step-title" id="aube-step-title">Invocations du matin</div>
+    <div class="timer-step-subtitle" id="aube-step-subtitle">Adhkar al-ṣabāḥ</div>
+    <div class="timer-countdown" id="aube-countdown">15:00</div>
+    <div class="timer-step-desc" id="aube-step-desc"></div>
+  </div>
+  <div class="timer-footer">
+    <div class="timer-chourouk-info" id="aube-chourouk-info"></div>
+    <button class="timer-next-btn" id="aube-next-btn" onclick="aubeNextStep()">Étape suivante →</button>
+    <button class="timer-skip-btn" onclick="aubeNextStep()">Passer cette étape</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detail-modal">
+  <div class="detail-sheet">
+    <div class="detail-handle"></div>
+    <div class="detail-content" id="detail-content"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══ DATA ═══
+const PROGRAM = [
+  {id:1,  titleFr:"Prière de nuit",                emoji:"🌙", time:"Avant le Fajr",    xp:25, cat:"qiyam",   paliers:[4]},
+  {id:3,  titleFr:"Prière du matin",               emoji:"🌅", time:"À l'aube",          xp:15, cat:"aube",    paliers:[3,4]},
+  {id:2,  titleFr:"Séance après l'aube",           emoji:"🌄", time:"Après le Fajr",     xp:20, cat:"aube",    paliers:[2,3,4]},
+  {id:14, titleFr:"Invocation du lien spirituel",  emoji:"🔗", time:"À l'aube",          xp:15, cat:"aube",    paliers:[3,4]},
+  {id:5,  titleFr:"Lecture du Coran",              emoji:"📖", time:"À l'aube",          xp:25, cat:"aube",    paliers:[1,2,3,4]},
+  {id:6,  titleFr:"Sourates méritoires",           emoji:"✨", time:"À l'aube",          xp:20, cat:"aube",    paliers:[2,3,4]},
+  {id:4,  titleFr:"Prières complémentaires",       emoji:"🤲", time:"Dans la journée",   xp:15, cat:"journee", paliers:[3,4]},
+  {id:7,  titleFr:"Témoignage d'unicité — 3×15min",emoji:"💫", time:"Dans la journée",   xp:20, cat:"journee", paliers:[3,4]},
+  {id:8,  titleFr:"Bénédictions sur le Prophète ﷺ",emoji:"💚", time:"Toute la journée",  xp:20, cat:"journee", paliers:[2,3,4]},
+  {id:10, titleFr:"Obligations de l'étudiant",     emoji:"📚", time:"Dans la journée",   xp:15, cat:"journee", paliers:[4]},
+  {id:11, titleFr:"Cercle de foi",                 emoji:"🤝", time:"Dans la journée",   xp:20, cat:"journee", paliers:[4]},
+  {id:12, titleFr:"Acquisition du savoir",         emoji:"📗", time:"Dans la journée",   xp:15, cat:"journee", paliers:[4]},
+  {id:13, titleFr:"Garde du temps",                emoji:"⏰", time:"Dans la journée",   xp:10, cat:"journee", paliers:[4]},
+  {id:9,  titleFr:"Convenances du sommeil",        emoji:"🌙", time:"Avant de dormir",   xp:15, cat:"nuit",    paliers:[1,2,3,4]},
+];
+const PALIER = {
+  1:{name:"Débutant",emoji:"🌱",desc:"Chaque grand voyage commence par un premier pas."},
+  2:{name:"En chemin",emoji:"🌿",desc:"Tu as de belles habitudes. Unifions-les."},
+  3:{name:"Intermédiaire",emoji:"🌳",desc:"Tu es déjà sur le chemin. Approfondissons."},
+  4:{name:"Bienfaisant",emoji:"🌟",desc:"Programme complet — la constance est ta force."},
+};
+const SECTIONS = {
+  qiyam:   {label:"Dernier tiers de la nuit", emoji:"🌙"},
+  aube:    {label:"À l'aube",                 emoji:"🌄"},
+  journee: {label:"Dans la journée",          emoji:"☀️"},
+  soir:    {label:"Ce soir",                  emoji:"🌇"},
+  nuit:    {label:"Avant de dormir",          emoji:"🌙"},
+};
+const WEEK_THEMES = [
+  "La constance dans les adorations",
+  "L'intention sincère",
+  "La présence du cœur",
+  "La patience et la gratitude",
+];
+const MOTIVS = [
+  '"L\'acte le plus aimé d\'Allah est celui accompli régulièrement, même s\'il est petit."',
+  '"Chaque jour qui passe est une partie de toi qui s\'en va."',
+  '"Sache qu\'il est des œuvres propres au jour que Dieu n\'accepte pas la nuit."',
+  "Reprends là où tu t'es arrêté — la porte est toujours ouverte.",
+  "Continue, barakAllahu fik — la constance est plus aimée que l'abondance.",
+  '"Petit, mais constant." — c\'est ton chemin.',
+];
+
+// ═══ INVOCATIONS DATA ═══
+const _ADHKAR_COMMUN = [
+  { arabic:"أَسْتَغْفِرُ اللَّهَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ", phonetic:"Astaghfiru llaha lladhi la ilaha illa Huwa l-Hayyu l-Qayyumu wa atubu ilayh", french:"Je demande pardon à Allah, Celui en dehors duquel il n'y a pas de divinité, le Vivant, le Subsistant, et je me repens à Lui.", repeat:3, source:"Abu Dawud & Tirmidhi" },
+  { arabic:"حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ", phonetic:"Hasbiyallahu la ilaha illa Huwa, 'alayhi tawakkaltu, wa Huwa Rabbu l-'arshi l-'azim", french:"Allah me suffit. Nul dieu qu'Lui. En Lui je place ma confiance. Il est le Seigneur du Trône immense.", repeat:7, source:"Abu Dawud" },
+  { arabic:"اللَّهُمَّ أَجِرْنِي مِنَ النَّارِ", phonetic:"Allahumma ajirni mina n-nar", french:"Ô Allah, préserve-moi du Feu.", repeat:7, source:"Abu Dawud & Nasa'i" },
+  { arabic:"لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ", phonetic:"La hawla wa la quwwata illa billahi l-'aliyyi l-'azim", french:"Il n'y a de force ni de puissance qu'en Allah, le Très-Haut, l'Immense.", repeat:10, source:"Bukhari & Muslim" },
+  { arabic:"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَيُحْيِي وَيُمِيتُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", phonetic:"La ilaha illallah wahdahu la sharika lah, lahul mulku walahul hamd, wa yuhyi wa yumitu, wa Huwa 'ala kulli shay'in qadir", french:"Nul dieu qu'Allah Seul, sans associé. À Lui la royauté, à Lui la louange. Il donne la vie et donne la mort. Il est Omnipotent.", repeat:10, source:"Tirmidhi" },
+  { arabic:"سُورَةُ الْإِخْلَاصِ", phonetic:"Qul Huwa llahu Ahad, Allahu s-Samad, lam yalid wa lam yulad, wa lam yakun lahu kufuwan ahad", french:"Sourate Al-Ikhlas — Dis : Il est Allah, Unique. Allah, le Seul à qui on s'adresse. Il n'engendre pas et n'est pas engendré. Et nul n'est égal à Lui.", repeat:10, source:"Coran 112" },
+  { arabic:"سُورَةُ الْفَلَقِ + سُورَةُ النَّاسِ", phonetic:"Qul a'udhu bi Rabbi l-falaq... / Qul a'udhu bi Rabbi n-nas...", french:"Sourate Al-Falaq + Sourate An-Nas — les deux protections.", repeat:3, source:"Coran 113-114" },
+  { arabic:"سُبْحَانَ اللَّهِ الْعَظِيمِ وَبِحَمْدِهِ", phonetic:"SubhanAllahi l-'azimi wa bihamdih", french:"Gloire à Allah l'Immense et louange à Lui.", repeat:3, source:"Bukhari & Muslim" },
+];
+const ADHKAR = {
+  matin: [
+    ..._ADHKAR_COMMUN,
+    { arabic:"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", phonetic:"SubhanAllahi wa bihamdih", french:"Gloire à Allah et louange à Lui.", repeat:100, source:"Muslim", note:"Au lever du soleil" },
+    { arabic:"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", phonetic:"La ilaha illallah wahdahu la sharika lah, lahul mulku walahul hamd, wa Huwa 'ala kulli shay'in qadir", french:"Nul dieu qu'Allah Seul, sans associé. À Lui la royauté, à Lui la louange. Il est Omnipotent.", repeat:100, source:"Bukhari & Muslim", note:"Au lever du soleil" },
+  ],
+  soir: [..._ADHKAR_COMMUN],
+};
+const DHIKR_LIST = [
+  { title:"La demande de pardon — Istighfar", arabic:"رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ", phonetic:"Rabi ghfir li wa toub 'alayya innaka anta t-tawwabou-r-Rahim", french:"Seigneur pardonne-moi et accepte mon repentir. Tu es Celui qui accepte le repentant et le Très Miséricordieux.", repeat:100, source:"Al-Bukhari" },
+  { title:"La prière sur le Prophète ﷺ — Salawat", arabic:"اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ النَّبِيِّ، وَأَزْوَاجِهِ أُمَّهَاتِ الْمُؤْمِنِينَ، وَذُرِّيَّتِهِ وَأَهْلِ بَيْتِهِ، كَمَا صَلَّيْتَ عَلَى سَيِّدِنَا إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ", phonetic:"Allahumma salli 'ala Sayyidina Muhammadin-n-nabi wa azwajihi ummahati-l-mu'minin wa dhurriyyatihi wa ahli baytihi, kama sallayta 'ala Sayyidina Ibrahim, innaka Hamidou-Majid", french:"Ô Allah ! Prie sur notre maître Muhammad le prophète, sur ses femmes les mères des croyants, sur sa descendance et les gens de sa maison, comme Tu as prié sur notre maître Ibrahim. Tu es certes le Digne d'éloge, le Glorieux.", repeat:100, source:"Coran 33:56 & Al-Bukhari" },
+  { title:"Le meilleur dhikr — Tahlil", arabic:"لَا إِلَهَ إِلَّا اللَّه", phonetic:"Lâ ilâha illa Llâh", french:"Il n'y a point de divinité à part Dieu.", repeat:100, source:"Ahmad & Mousnab" },
+];
+
+// ═══ STATE ═══
+const STORAGE_KEY = "dawam_pwa_v1";
+let S = {name:"",profile:{salat:0,quran:0,witr:0,type:"worker",goal:[],city:""},palier:1,weekNumber:1,totalDays:0,checklist:{},lastDate:null,history:[],customSteps:null,prayerTimes:null};
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(S));}
+function load(){try{const r=localStorage.getItem(STORAGE_KEY);if(r)S={...S,...JSON.parse(r)};}catch{}}
+
+// ═══ ONBOARDING ═══
+let obPage=0, obAns={};
+const OB_N=11;
+function initDots(){for(let i=0;i<OB_N;i++){const el=document.getElementById("dots-"+i);if(!el)return;let h="";for(let j=0;j<OB_N;j++){h+=`<div class="ob-dot${j===i?" active":j<i?" done":""}"></div>`;}el.innerHTML=h;}}
+function goToOnboarding() {
+  const splash = document.getElementById('splash');
+  const cycle = document.getElementById('cycle-svg');
+  const btn = event?.currentTarget;
+
+  if (btn) { btn.style.transform='scale(.96)'; setTimeout(()=>btn.style.transform='',150); }
+
+  // Anime le cycle
+  if (cycle) {
+    cycle.style.transform = 'scale(1.12) rotate(12deg)';
+    cycle.style.opacity = '0';
+  }
+
+  // Particules
+  const colors = ['#BA7517','#c9930a','#3B6D11','#f0c040','#8a6020'];
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const rect = splash.getBoundingClientRect();
+    p.style.cssText = `left:${rect.left + rect.width*(.35+Math.random()*.3)}px;top:${rect.top + rect.height*(.4+Math.random()*.2)}px;background:${colors[Math.floor(Math.random()*colors.length)]};width:${4+Math.random()*5}px;height:${4+Math.random()*5}px;opacity:.9;`;
+    document.body.appendChild(p);
+    const angle = Math.random()*Math.PI*2;
+    const dist = 60 + Math.random()*80;
+    const delay = Math.random()*180;
+    setTimeout(() => {
+      p.style.transition = `all ${400+Math.random()*300}ms cubic-bezier(.2,1,.4,1)`;
+      p.style.transform = `translate(${Math.cos(angle)*dist}px,${Math.sin(angle)*dist-20}px) scale(0)`;
+      p.style.opacity = '0';
+      setTimeout(()=>p.remove(), 800);
+    }, delay);
+  }
+
+  // Splash sort
+  setTimeout(() => splash.classList.add('splash-exiting'), 120);
+
+  // Onboarding entre
+  setTimeout(() => {
+    showScreen('onboarding');
+    obPage = 0;
+    renderObPage(0);
+    initDots();
+  }, 550);
+}
+function renderObPage(n){document.querySelectorAll(".ob-page").forEach(p=>p.classList.remove("active"));const p=document.querySelector(`.ob-page[data-page="${n}"]`);if(p)p.classList.add("active");if(n===10)renderResultPage();if(n===8)renderObThemeGrid();}
+function obNext(){obPage++;if(obPage<OB_N)renderObPage(obPage);}
+function obBack(){if(obPage>0){obPage--;renderObPage(obPage);}else showScreen("splash");}
+
+// ─── Thème onboarding ───
+function renderObThemeGrid(){
+  const current=localStorage.getItem('dawam_theme')||'default';
+  const el=document.getElementById('ob-theme-grid');
+  if(!el)return;
+  el.innerHTML=Object.entries(THEMES).map(([key,t])=>{
+    const sel=key===current;
+    return`<div onclick="obSelectTheme('${key}')" style="border-radius:12px;padding:10px 6px 8px;text-align:center;cursor:pointer;border:2px solid ${sel?t.accent:'rgba(128,100,50,0.15)'};background:${t.bg};transition:all .2s;position:relative">
+      <div style="font-size:20px;margin-bottom:4px">${t.emoji}</div>
+      <div style="display:flex;gap:3px;justify-content:center;margin-bottom:4px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${t.accent}"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:${t.green}"></div>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:${t.text};line-height:1.2">${t.name}</div>
+      ${sel?`<div style="position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:${t.accent};display:flex;align-items:center;justify-content:center"><svg width="8" height="8" viewBox="0 0 8 8"><polyline points="1,4 3,6.5 7,1.5" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`:''}
+    </div>`;
+  }).join('');
+}
+function obSelectTheme(key){applyTheme(key);renderObThemeGrid();}
+
+// ─── Notifications onboarding ───
+function obChooseNotif(wantsNotif, el){
+  document.getElementById('ob-notif-yes').classList.toggle('selected', wantsNotif);
+  document.getElementById('ob-notif-no').classList.toggle('selected', !wantsNotif);
+  document.getElementById('ob-notif-next').disabled=false;
+  obAns.notifs=wantsNotif;
+}
+async function obNextFromNotifs(){
+  if(obAns.notifs===true){
+    const btn=document.getElementById('ob-notif-next');
+    btn.disabled=true;
+    btn.textContent='Activation…';
+    try{
+      if(!('Notification' in window)||!('PushManager' in window)) throw new Error('unsupported');
+      const perm=await Notification.requestPermission();
+      if(perm!=='granted') throw new Error('denied');
+      const sub=await subscribePush();
+      await fetch(`${PUSH_WORKER}/subscribe`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...sub.toJSON(),city:obAns.city||''})});
+      obAns._pushSub=sub.endpoint;
+      showToast('Rappels activés ✓');
+    }catch(e){
+      if(e.message==='denied') showToast('Permission refusée — tu pourras activer les rappels dans Profil');
+      else showToast('Notifications non disponibles — tu pourras les activer dans Profil');
+      obAns._pushSub=null;
+    }
+    btn.disabled=false;
+    btn.textContent='Voir mon programme →';
+  }
+  obNext();
+}
+function checkNameInput(){const v=document.getElementById("name-input").value.trim();document.getElementById("name-next").disabled=!v;if(v)obAns.name=v;}
+function checkCityInput(){const v=document.getElementById("city-input")?.value.trim();if(v)obAns.city=v;else delete obAns.city;}
+function selectOption(el){
+  const parent=el.closest(".ob-options");
+  const isMulti=parent.dataset.multi==="true";
+  const key=parent.dataset.key;
+  const val=el.dataset.value;
+  if(!isMulti){parent.querySelectorAll(".ob-option").forEach(o=>o.classList.remove("selected"));el.classList.add("selected");obAns[key]=isNaN(val)?val:Number(val);}
+  else{el.classList.toggle("selected");if(!obAns[key])obAns[key]=[];if(el.classList.contains("selected")){if(!obAns[key].includes(val))obAns[key].push(val);}else{obAns[key]=obAns[key].filter(v=>v!==val);}}
+  const map={salat:"q1-next",quran:"q2-next",witr:"q3-next",type:"q4-next",goal:"q5-next"};
+  const btnId=map[key];
+  if(btnId){const btn=document.getElementById(btnId);if(btn)btn.disabled=isMulti?obAns[key].length===0:false;}
+}
+function calcPalier(p){let s=0;if(p.salat>=5)s+=3;else if(p.salat>=2)s+=1;s+=Math.min(p.quran||0,2);s+=Math.min(p.witr||0,2);if(s>=7)return 3;if(s>=3)return 2;return 1;}
+// ─── Page résultat + personnalisation ───
+let obEditMode=false, obSelectedSteps=[];
+function renderResultPage(){
+  obEditMode=false;
+  const palier=calcPalier({salat:obAns.salat??0,quran:obAns.quran??0,witr:obAns.witr??0});
+  obSelectedSteps=PROGRAM.filter(i=>i.paliers.includes(palier)).map(i=>i.id);
+  renderResultContent(palier);
+}
+function renderResultContent(palier){
+  const el=document.getElementById("result-content");
+  if(!el)return;
+  const pi=PALIER[palier];
+  const chk=`<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  let html=`<div class="ob-result-palier"><div class="ob-result-emoji">${pi.emoji}</div><div class="ob-result-name">${pi.name}</div><div class="ob-result-desc">${pi.desc}</div></div>`;
+  if(!obEditMode){
+    const steps=PROGRAM.filter(i=>obSelectedSteps.includes(i.id));
+    html+=`<p class="ob-label" style="text-align:left;margin-bottom:10px">Ton programme · ${steps.length} étapes</p>`;
+    html+=steps.map(item=>`<div class="ob-result-step"><span class="ob-result-step-emoji">${item.emoji}</span><div class="ob-result-step-info"><div class="ob-result-step-title">${item.titleFr}</div><div class="ob-result-step-time">${item.time}</div></div><span class="ob-result-step-xp">+${item.xp} XP</span></div>`).join("");
+    html+=`<button class="ob-edit-toggle" onclick="toggleResultEdit()">✏️ Modifier mon programme</button>`;
+  } else {
+    html+=`<p class="ob-label" style="text-align:left;margin-bottom:6px">Personnalise ton programme</p>`;
+    html+=`<p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.5">Coche ou décoche les étapes selon ce que tu veux travailler.</p>`;
+    const proposed=PROGRAM.filter(i=>i.paliers.includes(palier));
+    const advanced=PROGRAM.filter(i=>!i.paliers.includes(palier));
+    const renderStep=item=>{
+      const sel=obSelectedSteps.includes(item.id);
+      const adv=!item.paliers.includes(palier);
+      return `<div class="ob-result-step edit-mode${sel?" selected":""}" onclick="toggleStep(${item.id})"><div class="ob-result-check">${sel?chk:""}</div><span class="ob-result-step-emoji">${item.emoji}</span><div class="ob-result-step-info"><div class="ob-result-step-title">${item.titleFr}</div><div class="ob-result-step-time">${item.time}</div></div>${adv?`<span class="ob-step-badge">avancé</span>`:`<span class="ob-result-step-xp">+${item.xp} XP</span>`}</div>`;
+    };
+    html+=proposed.map(renderStep).join("");
+    if(advanced.length){html+=`<p class="ob-label" style="text-align:left;margin:14px 0 8px;color:var(--accent)">Étapes avancées</p>`;html+=advanced.map(renderStep).join("");}
+    html+=`<button class="ob-edit-toggle active" onclick="toggleResultEdit()">✓ Valider la sélection</button>`;
+  }
+  el.innerHTML=html;
+}
+function toggleResultEdit(){
+  obEditMode=!obEditMode;
+  renderResultContent(calcPalier({salat:obAns.salat??0,quran:obAns.quran??0,witr:obAns.witr??0}));
+  document.getElementById("result-content")?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function toggleStep(id){
+  if(obSelectedSteps.includes(id)){if(obSelectedSteps.length>1)obSelectedSteps=obSelectedSteps.filter(s=>s!==id);}
+  else{obSelectedSteps=[...obSelectedSteps,id];}
+  renderResultContent(calcPalier({salat:obAns.salat??0,quran:obAns.quran??0,witr:obAns.witr??0}));
+}
+
+function finishOnboarding(){
+  const name=document.getElementById("name-input")?.value.trim()||obAns.name||"ami";
+  const profile={salat:obAns.salat??0,quran:obAns.quran??0,witr:obAns.witr??0,type:obAns.type||"worker",goal:obAns.goal||["taqwa"],city:obAns.city||""};
+  const palier=calcPalier(profile);
+  const defaultIds=PROGRAM.filter(i=>i.paliers.includes(palier)).map(i=>i.id).sort((a,b)=>a-b);
+  const selSorted=[...obSelectedSteps].sort((a,b)=>a-b);
+  const isCustom=obSelectedSteps.length>0&&JSON.stringify(selSorted)!==JSON.stringify(defaultIds);
+  localStorage.removeItem(STORAGE_KEY);
+  const notifs=obAns._pushSub?{pushSub:obAns._pushSub}:null;
+  S={name,profile,palier,weekNumber:1,checklist:{},totalDays:0,lastDate:null,history:[],customSteps:isCustom?[...obSelectedSteps]:null,notifs};
+  save();launchApp();track('launch');track('onboarding_complete');
+}
+
+// ═══ PATH ═══
+function getGreet(){const h=new Date().getHours();if(h<6)return"Bonne nuit";if(h<12)return"Bonjour";if(h<17)return"Bon après-midi";if(h<20)return"Bonne soirée";return"Bonsoir";}
+function getTimeLabel(){const h=new Date().getHours(),m=String(new Date().getMinutes()).padStart(2,"0");return`${h}h${m}`;}
+function inRange(cur,start,end){if(start<=end)return cur>=start&&cur<end;return cur>=start||cur<end;}
+function getCurrentCat(){
+  const now=new Date();
+  const cur=now.getHours()*60+now.getMinutes();
+  const pt=S.prayerTimes;
+  if(pt&&pt.Fajr&&pt.Sunrise&&pt.Maghrib&&pt.Isha){
+    const fajr=parseTime(pt.Fajr),sunrise=parseTime(pt.Sunrise);
+    const maghrib=parseTime(pt.Maghrib),isha=parseTime(pt.Isha);
+    const midnight=parseTime(pt.Midnight||"00:00");
+    if(inRange(cur,fajr,sunrise))return"aube";
+    if(inRange(cur,sunrise,maghrib))return"journee";
+    if(inRange(cur,maghrib,isha))return"soir";
+    if(inRange(cur,isha,midnight))return"nuit";
+    return"qiyam";
+  }
+  const h=now.getHours();
+  if(h>=5&&h<8)return"aube";
+  if(h>=8&&h<18)return"journee";
+  if(h>=18&&h<21)return"soir";
+  if(h>=21||h<3)return"nuit";
+  return"qiyam";
+}
+function getActiveItems(){if(S.customSteps&&S.customSteps.length>0)return PROGRAM.filter(i=>S.customSteps.includes(i.id));return PROGRAM.filter(i=>i.paliers.includes(S.palier));}
+function checkNewDay(){
+  const today=new Date().toISOString().split("T")[0];
+  if(S.lastDate&&S.lastDate!==today){
+    const checked=Object.values(S.checklist).filter(Boolean).length;
+    S.history.push({date:S.lastDate,checked,total:getActiveItems().length});
+    if(S.history.length>30)S.history.shift();
+    S.totalDays++;S.checklist={};
+  }
+  S.lastDate=today;save();
+}
+
+function renderPath(){
+  checkNewDay();
+  const items=getActiveItems();
+  const checked=Object.values(S.checklist).filter(Boolean).length;
+  const total=items.length;
+  const pct=total>0?Math.round(checked/total*100):0;
+  const allDone=checked===total&&total>0;
+  const pi=PALIER[S.palier];
+  const curCat=getCurrentCat();
+
+  document.getElementById("hero-chip").textContent=pi.emoji+" "+pi.name;
+  document.getElementById("hero-name").textContent=(S.name?`Bonjour, ${S.name}`:"Bonjour");
+  document.getElementById("hero-motiv").textContent=MOTIVS[Math.floor(Math.random()*MOTIVS.length)];
+  document.getElementById("prog-label").textContent=allDone?"Journée complète !": `${checked} / ${total} objectifs`;
+  document.getElementById("prog-right").textContent=allDone?"Ma sha Allah 🌟":`${pct}% accompli`;
+  document.getElementById("prog-fill").style.width=Math.max(pct,1)+"%";
+  document.getElementById("pill-constance").textContent=`Semaine ${S.weekNumber} · ${pi.name}`;
+
+  const body=document.getElementById("path-body");
+  body.innerHTML="";
+
+  // Ordre temporel et détection des sections futures (verrouillées)
+  const catOrder=["qiyam","aube","journee","soir","nuit"];
+  const curIdx=catOrder.indexOf(curCat);
+  const futureCats=catOrder.slice(curIdx+1);
+
+  // Next action — uniquement dans les sections accessibles maintenant ou passées
+  if(!allDone){
+    const next=items.find(i=>!S.checklist[i.id]&&!futureCats.includes(i.cat));
+    if(next){
+      const secLabel=SECTIONS[next.cat]?.label||next.time;
+      const isCur=next.cat===curCat;
+      body.innerHTML+=`<div class="next-action-card fade-up">
+        <div class="next-action-label">${isCur?"● Maintenant":"● Prochaine étape"} · ${secLabel}</div>
+        <div class="next-action-row">
+          <div class="next-action-icon">${next.emoji}</div>
+          <div style="flex:1"><div class="next-action-title">${next.titleFr}</div><div class="next-action-sub">${next.time}</div></div>
+          <span class="next-action-xp">+${next.xp} XP</span>
+        </div>
+        <button class="btn-primary" onclick="openDetail(${next.id})">Voir l'action →</button>
+      </div>`;
+    }
+  } else {
+    body.innerHTML+=`<div class="all-done-card fade-up"><div class="all-done-emoji">🌟</div><div class="all-done-text">Journée complète — Ma sha Allah !</div></div>`;
+  }
+
+  // Stats
+  const theme=WEEK_THEMES[(S.weekNumber-1)%WEEK_THEMES.length];
+  body.innerHTML+=`<div class="stats-row fade-up" style="animation-delay:.05s">
+    <div class="stats-card"><div class="stats-label">Progression</div><div class="stats-percent">${pct}%</div><div class="stats-count">${checked} / ${total} étapes</div><div class="stats-mini-bar"><div class="stats-mini-fill" style="width:${pct}%"></div></div></div>
+    <div class="stats-card"><div class="stats-label">Cette semaine</div><div class="week-theme">${theme}</div><div class="week-sub">${pi.name}</div></div>
+  </div>`;
+
+  // Helper : génère le HTML d'une section selon son statut
+  const renderSection = (cat, si, status) => {
+    const catItems = items.filter(i => i.cat === cat);
+    if (!catItems.length) return '';
+    const sec = SECTIONS[cat];
+    const secChecked = catItems.filter(i => S.checklist[i.id]).length;
+    const isFut = status === 'future';
+    const isPast = status === 'past';
+    const isCur = status === 'current';
+    const allSecDone = secChecked === catItems.length;
+
+    const lockSvg = `<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="var(--text-light)" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="5.5" width="7" height="5.5" rx="1.2"/><path d="M4.5 5.5V4a1.5 1.5 0 0 1 3 0v1.5"/></svg>`;
+
+    const itemsHtml = catItems.map(item => {
+      const done = !!S.checklist[item.id];
+      if (isFut) return `<div class="item-row locked" onclick="showLockedHint('${cat}')">
+        <div class="item-check" style="background:transparent;border-color:var(--border)">${lockSvg}</div>
+        <div class="item-text"><div class="item-title">${item.emoji} ${item.titleFr}</div><div class="item-sub">${item.time}</div></div>
+        <span class="item-xp" style="color:var(--text-light)">+${item.xp} XP</span>
+      </div>`;
+      const right = (isPast && !done)
+        ? `<span class="missed-badge">Manqué</span>`
+        : `<span class="item-xp"${isPast && !done ? ' style="opacity:.4"' : ''}>+${item.xp} XP</span>`;
+      const invocTab = INVOC_LINK[item.id];
+      const rowClick = invocTab ? `openInvocFromDetail(${item.id})` : `openDetail(${item.id})`;
+      const invocBadge = invocTab ? `<span style="font-size:10px;color:var(--accent);opacity:.7;margin-left:4px">📿</span>` : '';
+      return `<div class="item-row${done ? ' checked' : ''}" onclick="${rowClick}">
+        <div class="item-check" onclick="event.stopPropagation();toggleItem(${item.id})"><svg class="item-check-icon" width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="item-text"><div class="item-title">${item.emoji} ${item.titleFr}${invocBadge}</div><div class="item-sub">${item.time}</div></div>
+        ${right}
+      </div>`;
+    }).join('');
+
+    const collapsed = isFut || isPast;
+    const badgeRight = isFut
+      ? `<span class="section-header-badge" style="color:var(--text-light)">🔒</span>`
+      : isCur ? `<span class="section-current-badge">● Maintenant</span>` : '';
+    const doneBadge = allSecDone ? `<span class="section-header-badge" style="color:var(--green)">✓ ${secChecked}/${catItems.length}</span>` : `<span class="section-header-badge">${secChecked}/${catItems.length}</span>`;
+
+    return `<div class="section-block${isPast ? ' past-block' : ''} fade-up" style="animation-delay:${.1+si*.03}s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left"><span class="section-header-emoji">${sec.emoji}</span><span class="section-header-label">${sec.label}</span></div>
+        <div style="display:flex;align-items:center;gap:6px">${badgeRight}${doneBadge}</div>
+      </div>
+      <div class="section-items"${collapsed ? ' style="display:none"' : ''}>${itemsHtml}</div>
+    </div>`;
+  };
+
+  // Groupes : À faire / À venir / Passé
+  const pastCats   = catOrder.slice(0, curIdx).filter(c => items.some(i => i.cat === c));
+  const futureCats2 = catOrder.slice(curIdx + 1).filter(c => items.some(i => i.cat === c));
+  const hasCur     = items.some(i => i.cat === curCat);
+
+  // À faire (maintenant)
+  if (hasCur) {
+    body.innerHTML += `<div class="path-group-label now fade-up" style="animation-delay:.08s">● À faire</div>`;
+    body.innerHTML += renderSection(curCat, 0, 'current');
+  }
+
+  // À venir
+  if (futureCats2.length) {
+    body.innerHTML += `<div class="path-group-label fade-up" style="animation-delay:.11s">À venir</div>`;
+    futureCats2.forEach((cat, si) => { body.innerHTML += renderSection(cat, si + 1, 'future'); });
+  }
+
+  // Passé
+  if (pastCats.length) {
+    body.innerHTML += `<div class="path-group-label past fade-up" style="animation-delay:.14s">Passé</div>`;
+    pastCats.forEach((cat, si) => { body.innerHTML += renderSection(cat, si + 1, 'past'); });
+  }
+}
+
+function toggleSection(h){const items=h.nextElementSibling;const hidden=items.style.display==="none";items.style.display=hidden?"flex":"none";if(hidden)items.style.flexDirection="column";}
+
+function patchAfterToggle(id) {
+  // Met à jour le row en place sans toucher au DOM global
+  document.querySelectorAll('.item-check').forEach(check => {
+    if (check.getAttribute('onclick')?.includes(`toggleItem(${id})`)) {
+      const row = check.closest('.item-row');
+      if (!row) return;
+      const done = !!S.checklist[id];
+      row.classList.toggle('checked', done);
+      const icon = check.querySelector('.item-check-icon');
+      if (icon) icon.style.display = done ? 'block' : 'none';
+      const title = row.querySelector('.item-title');
+      if (title) title.style.textDecoration = done ? 'line-through' : '';
+    }
+  });
+
+  // Met à jour la barre de progression sans re-render
+  const items = getActiveItems();
+  const checked = Object.values(S.checklist).filter(Boolean).length;
+  const total = items.length;
+  const pct = total > 0 ? Math.round(checked / total * 100) : 0;
+  const allDone = checked === total && total > 0;
+  document.getElementById('prog-label').textContent = allDone ? 'Journée complète !' : `${checked} / ${total} objectifs`;
+  document.getElementById('prog-right').textContent = allDone ? 'Ma sha Allah 🌟' : `${pct}% accompli`;
+  document.getElementById('prog-fill').style.width = Math.max(pct, 1) + '%';
+}
+
+function renderPathSmooth() {
+  const body = document.getElementById('path-body');
+  body.style.opacity = '0';
+  setTimeout(() => { renderPath(); body.style.opacity = '1'; }, 180);
+}
+
+function toggleItem(id) {
+  S.checklist[id] = !S.checklist[id];
+  save();
+
+  if (S.checklist[id]) {
+    patchAfterToggle(id);
+    animateItemComplete(id);
+
+    const items = getActiveItems();
+    const allDone = items.every(i => S.checklist[i.id]);
+    if (allDone) {
+      setTimeout(() => { renderPathSmooth(); fireCompletionOverlay(); }, 750);
+    } else {
+      const TOASTS = [
+        "✓ barakAllahu fik",
+        "✓ Ma sha Allah — continue !",
+        "✓ Petit mais constant ✦",
+        "✓ Accompli — la constance, c'est ça",
+      ];
+      const done = items.filter(i => S.checklist[i.id]).length;
+      showToast(TOASTS[(done - 1) % TOASTS.length]);
+      setTimeout(() => renderPathSmooth(), 750);
+    }
+  } else {
+    renderPathSmooth();
+  }
+
+  if (document.getElementById('profil').classList.contains('active')) renderProfil();
+}
+
+// ═══ INVOCATIONS ═══
+let _invocTab = 'matin';
+function switchInvocTab(tab, el) {
+  _invocTab = tab;
+  document.querySelectorAll('.invoc-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderInvocContent();
+}
+function renderInvocContent() {
+  const el = document.getElementById('invoc-content');
+  if (!el) return;
+  if (_invocTab === 'dhikr') {
+    el.innerHTML = DHIKR_LIST.map(d => `
+      <div class="invoc-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text)">${d.title}</span>
+          ${d.repeat ? `<span class="invoc-repeat">× ${d.repeat}</span>` : ''}
+        </div>
+        <div class="invoc-arabic">${d.arabic}</div>
+        <div class="invoc-phonetic">${d.phonetic}</div>
+        <div class="invoc-french">${d.french}</div>
+        ${d.note ? `<div style="background:var(--green-light);border-radius:8px;padding:8px 10px;margin-top:8px;margin-bottom:6px;font-size:12px;color:var(--green);line-height:1.5">${d.note}</div>` : ''}
+        <div class="invoc-source">${d.source}</div>
+      </div>`).join('');
+  } else {
+    const items = ADHKAR[_invocTab] || [];
+    el.innerHTML = items.map((a, i) => `
+      <div class="invoc-card" style="animation:fadeUp .3s ease ${i * 0.04}s both">
+        ${a.note ? `<div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">${a.note}</div>` : ''}
+        <span class="invoc-repeat">× ${a.repeat}</span>
+        <div class="invoc-arabic">${a.arabic}</div>
+        <div class="invoc-phonetic">${a.phonetic}</div>
+        <div class="invoc-french">${a.french}</div>
+        <div class="invoc-source">${a.source}</div>
+      </div>`).join('');
+  }
+}
+function renderInvocations() {
+  // Sync tabs visuals with current state
+  document.querySelectorAll('.invoc-tab').forEach((t, i) => {
+    const tabs = ['matin','soir','dhikr'];
+    t.classList.toggle('active', tabs[i] === _invocTab);
+  });
+  renderInvocContent();
+}
+
+// ═══ PROFIL ═══
+function animateItemComplete(itemId) {
+  let targetRow = null;
+  document.querySelectorAll('.item-check').forEach(check => {
+    if (check.getAttribute('onclick')?.includes(`toggleItem(${itemId})`)) {
+      targetRow = check.closest('.item-row');
+    }
+  });
+  if (!targetRow) return;
+
+  const check = targetRow.querySelector('.item-check');
+  if (check) {
+    check.style.background = '#3B6D11';
+    check.style.borderColor = '#3B6D11';
+    const svg = check.querySelector('svg');
+    if (svg) { svg.style.opacity='1'; svg.style.transform='scale(1)'; svg.style.animation='checkPop .35s cubic-bezier(.34,1.56,.64,1) both'; }
+    let ring = check.querySelector('.item-check-ring');
+    if (!ring) { ring = document.createElement('div'); ring.className='item-check-ring'; check.appendChild(ring); }
+    ring.className = 'item-check-ring';
+    setTimeout(() => ring.classList.add('fire'), 10);
+  }
+
+  let starWrap = targetRow.querySelector('.item-star-wrap');
+  if (!starWrap) {
+    starWrap = document.createElement('div');
+    starWrap.className = 'item-star-wrap';
+    starWrap.innerHTML = '<span class="item-star">✦</span><span class="item-star">✦</span><span class="item-star">✦</span>';
+    targetRow.appendChild(starWrap);
+  }
+  setTimeout(() => {
+    starWrap.querySelectorAll('.item-star').forEach((s, i) => {
+      setTimeout(() => s.classList.add('fire'), i * 75);
+    });
+  }, 80);
+
+  let xpBadge = targetRow.querySelector('.item-xp-badge');
+  if (!xpBadge) {
+    const item = getActiveItems().find(i => i.id === itemId);
+    if (item) {
+      xpBadge = document.createElement('span');
+      xpBadge.className = 'item-xp-badge';
+      xpBadge.textContent = '+' + (item.xp || 15) + ' XP';
+      targetRow.appendChild(xpBadge);
+    }
+  }
+  if (xpBadge) setTimeout(() => xpBadge.classList.add('show'), 220);
+
+  setTimeout(() => { targetRow.style.background = 'rgba(59,109,17,.04)'; }, 150);
+}
+
+function fireCompletionOverlay() {
+  const overlay = document.getElementById('dawam-completion-overlay');
+  const star = document.getElementById('dawam-center-star');
+  const msg = document.getElementById('dawam-completion-msg');
+  if (!overlay) return;
+
+  overlay.classList.add('show');
+  star.classList.add('fire');
+  msg.classList.add('fire');
+
+  const classes = ['fire-a','fire-b','fire-c','fire-d','fire-e','fire-f'];
+  for (let i = 1; i <= 6; i++) {
+    const el = document.getElementById('dcp' + i);
+    if (el) el.classList.add(classes[i - 1]);
+  }
+
+  setTimeout(() => {
+    overlay.classList.add('hide');
+    setTimeout(() => {
+      overlay.classList.remove('show', 'hide');
+      star.classList.remove('fire');
+      msg.classList.remove('fire');
+      const classes2 = ['fire-a','fire-b','fire-c','fire-d','fire-e','fire-f'];
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById('dcp' + i);
+        if (el) el.classList.remove(classes2[i - 1]);
+      }
+    }, 400);
+  }, 3200);
+}
+
+function renderProfil(){
+  const pi=PALIER[S.palier];
+  const items=getActiveItems();
+  const checked=Object.values(S.checklist).filter(Boolean).length;
+  document.getElementById("profil-avatar").textContent=S.name?S.name[0].toUpperCase():"?";
+  document.getElementById("profil-name").textContent=S.name||"—";
+  document.getElementById("profil-palier").textContent=pi.emoji+" "+pi.name+" · Semaine "+S.weekNumber;
+  document.getElementById("stat-constance").textContent=S.weekNumber;
+  document.getElementById("stat-actions").textContent=checked;
+  document.getElementById("stat-total").textContent=S.totalDays+1;
+  document.getElementById("stat-palier").textContent=S.palier;
+  document.getElementById("stat-palier-name").textContent=pi.name;
+  const toggle=document.getElementById('dark-toggle');
+  if(toggle)toggle.classList.toggle('on',isDarkMode());
+  renderNotifToggle();
+
+  // Timeline 7 derniers jours
+  const DAY_NAMES=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const tl=document.getElementById("days-timeline");
+  tl.className='days-timeline';
+  let tlHtml='';
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const key=d.toISOString().split("T")[0];
+    const isToday=i===0;
+    let done=0,total=items.length,hasData=isToday;
+    if(isToday){done=checked;}
+    else{const entry=S.history.find(h=>h.date===key);if(entry){done=entry.checked;total=Math.max(entry.total||total,1);hasData=true;}else{total=0;}}
+    const pct=total>0?Math.round(done/total*100):0;
+    const level=!hasData?0:pct===0?0:pct<35?1:pct<65?2:pct<90?3:4;
+    const fillColors=['','var(--accent)','var(--accent)','var(--accent)','var(--green)'];
+    const fillOpacity=['','0.3','0.6','1','1'];
+    const fillStyle=level===0?'width:0%':`width:${pct}%;background:${fillColors[level]};opacity:${fillOpacity[level]}`;
+    const label=isToday?"Aujourd'hui":`${DAY_NAMES[d.getDay()]} · ${d.getDate()}`;
+    const countText=!hasData?'—':`${done}/${total}`;
+    tlHtml+=`<div class="day-row${isToday?' is-today':''}${!hasData?' no-data':''}">
+      <div class="day-row-label">${label}</div>
+      <div class="day-row-bar"><div class="day-row-fill" style="${fillStyle}"></div></div>
+      <div class="day-row-count">${countText}</div>
+    </div>`;
+  }
+  tl.innerHTML=tlHtml;
+}
+
+// ═══ NAV ═══
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");const nav=document.getElementById("bottom-nav");nav.classList.toggle("visible",["path","invocations","profil"].includes(id));}
+function showTab(id,el){showScreen(id);document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));el.classList.add("active");if(id==="path")renderPath();if(id==="profil")renderProfil();if(id==="invocations")renderInvocations();}
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2400);}
+function showLockedHint(cat){const msgs={qiyam:"Disponible la nuit (dernier tiers)",aube:"Disponible après le Fajr",journee:"Disponible dans la journée",soir:"Disponible ce soir",nuit:"Disponible avant de dormir"};showToast((msgs[cat]||"Disponible plus tard")+" 🔒");}
+function resetApp(){if(confirm("Recommencer depuis le début ?")){localStorage.removeItem(STORAGE_KEY);location.reload();}}
+
+// ═══ ITEM DETAILS ═══
+const ITEM_DETAILS = {
+  1:{
+    why:"Le Prophète ﷺ ne l'abandonnait jamais, même en voyage. C'est le pilier de la nuit.",
+    hadith:{text:"Notre Seigneur s'émerveille de deux hommes : l'un d'eux se lève de sa couche et de son drap, quittant l'amour de sa compagne pour aller prier. Dieu dit à Ses anges : \"Regardez Mon serviteur, il s'est levé par désir de ce que Je détiens et par crainte de ce que Je réserve…\"",source:"Ibn Ḥibbān, Ṣaḥīḥ"},
+    steps:["Se lever environ 1h avant l'aube (ou un court moment si c'est difficile)","Faire les ablutions","Prier 2 raka'at par 2 raka'at — objectif 11 au total : 2+2+2+2 puis Chaf' (2) puis Witr (1)","Pour commencer : juste 2 raka'at + Witr suffit, puis augmenter progressivement semaine après semaine","Après le Witr : rester assis et demander pardon (istighfar)"],
+    note:"L'enjeu n'est pas de tout faire du premier coup. Commence par 2 raka'at + Witr. La constance compte plus que la quantité."
+  },
+  2:{
+    why:"Rester assis après Fajr jusqu'au lever du soleil est l'un des moments les plus bénis de la journée.",
+    hadith:{text:"Celui qui accomplit la prière de l'aube en groupe, puis reste assis à évoquer Dieu jusqu'au lever du soleil, aura la récompense d'un pèlerinage et d'une ʿumra complète, complète, complète.",source:"At-Tirmidhī, jugé hasan"},
+    steps:["Rester à sa place après la prière du Fajr","Commencer par les invocations du matin (adhkar al-sabah)","Réciter les versets et sourates méritoires","Lire ou mémoriser du Coran","Faire l'invocation du lien spirituel (duʿâʾ ar-râbiṭa)","Se lever environ 15–20 min après le lever du soleil pour la prière du Chourouk"],
+    note:"Ce moment est une parenthèse bénie. Garde ton téléphone de côté."
+  },
+  3:{
+    why:"La prière de l'aube en congrégation vaut mieux que le monde entier et ce qu'il contient.",
+    hadith:{text:"Les deux raka'at de l'aube valent mieux que le monde entier et ce qu'il contient.",source:"Muslim"},
+    steps:["Faire les 2 raka'at sunna avant le Fajr","Aller à la mosquée si possible — sinon prier avec sa famille","Prier les 2 fard (obligatoires) avec khushū'"],
+    note:"Les 2 sunna du Fajr ne s'abandonnent jamais, même si on a manqué d'autres prières."
+  },
+  4:{
+    why:"Les prières surérogatoires comblent les lacunes des prières obligatoires et rapprochent d'Allah.",
+    hadith:{text:"Ô fils d'Adam, accomplis pour Moi quatre unités de prière au début de la journée, et Je te suffirai pour la suite.",source:"Ahmad, bonne chaîne"},
+    steps:["2 raka'at sunna avant le Fajr (avant la prière obligatoire)","2 raka'at après les ablutions (sunna de Bilāl)","4 raka'at avant le Dhuhr + 2 après","2 raka'at avant le ʿAsr","2 raka'at avant le Maghrib + 6 après (Awwābīn)","2 raka'at avant le ʿIshāʾ + 4 après","Prière du Chourouk : 2 à 8 raka'at, 10–15 min après le lever du soleil"],
+    note:"Ne cherche pas à tout faire d'un coup. Commence par les rawatib du Dhuhr et du Fajr."
+  },
+  5:{
+    why:"La récitation quotidienne du Coran est une nourriture pour le cœur. Un wird régulier, même court, vaut mieux qu'une lecture irrégulière.",
+    hadith:{text:"Récitez le Coran, car il viendra en intercession pour ses compagnons au Jour de la Résurrection.",source:"Muslim"},
+    steps:["Fixer une portion quotidienne (wird) selon ton niveau","Débutant : 3 à 5 minutes le matin, quelques versets","Intermédiaire : 1 hizb par jour (environ 25 min)","Lire de préférence après Fajr pendant la séance de l'aube","Chercher la présence du cœur plutôt que la vitesse"],
+    note:"Même une sourate courte lue avec présence vaut mieux qu'un hizb récité distraitement."
+  },
+  6:{
+    why:"Ces versets et sourates ont des mérites spécifiques rapportés dans la Sunna. Les réciter chaque matin est un bouclier et une lumière.",
+    hadith:{text:"Ô Dieu, accorde Ta bénédiction à ma communauté dans ses débuts de journée.",source:"Ahmad, Abū Dāwūd"},
+    steps:["Al-Fātiḥa [1:1–7]","Al-Baqara [2:1–5] puis Āyat al-Kursī [2:255–257] puis [2:285–286]","Āl ʿImrān [3:1–9], [3:18–19], [3:26–27], [3:190–200]","Fin de at-Tawba [9:128–129] — 7 fois","Al-Kahf [18:107–110] · Yāsīn [36] · Al-Wāqiʿa [56] · Al-Mulk [67]","Les Musabbiḥāt : Al-Ḥadīd [57], Al-Ḥashr [59], aṣ-Ṣaff [61], Al-Jumuʿa [62], At-Taghābun [64]","Les courtes : Al-Aʿlā [87] · aḍ-Ḍuḥā [93] · ash-Sharḥ [94] · Al-Qadr [97]","Az-Zalzala [99] ×4 · At-Takāthur [102] · Al-ʿAṣr [103] ×2 · Al-Māʿūn [107]","Al-Kawthar [108] ×3 · Al-Kāfirūn [109] ×4 · An-Naṣr [110] ×4 · Al-Ikhlāṣ [112] ×3","Al-Falaq [113] + An-Nās [114] — Clôturer par Al-Fātiḥa + Al-Baqara [2:1–5]"],
+    note:"Ne cherche pas à tout réciter d'un coup. Commence par Āyat al-Kursī + les 3 dernières sourates chaque matin, puis augmente progressivement."
+  },
+  7:{
+    why:"Par ce dhikr, la foi se renouvelle et le cœur se vivifie. C'est le sommet des affluents de la foi.",
+    hadith:{text:"Renouvelez votre foi ! On demanda : comment ? Il répondit : Répétez inlassablement Lā ilāha illa Llāh. Évoquez Dieu jusqu'à ce que les gens disent de vous : C'est un fou !",source:"Ahmad — Ibn Ḥibbān, Ṣaḥīḥ"},
+    steps:["Prévoir 3 moments dans la journée d'au moins 15 minutes chacun","Être seul, dans le calme, cœur présent","Répéter lentement : Lā ilāha illa Llāh","Essayer le matin (après séance aube), le milieu de journée, et avant le sommeil"],
+    note:"La présence du cœur est essentielle. 15 minutes de qualité valent mieux qu'une heure mécanique."
+  },
+  8:{
+    why:"Les bénédictions sur le Prophète ﷺ illuminent le cœur, effacent les péchés et rapprochent de lui au Jour de la Résurrection.",
+    hadith:{text:"Les plus proches de moi le Jour de la Résurrection sont ceux qui auront le plus prié sur moi.",source:"At-Tirmidhī — Ibn Ḥibbān"},
+    steps:["Objectif : au moins 300 fois par jour","Formule complète : Allāhumma ṣalli ʿalā Muḥammadin an-nabiyy, wa-ʾazwājihī ummahāti al-muʾminīn, wa-dhurriyyatihī wa-ʾahli baytih, kamā ṣallayta ʿalā Āli Ibrāhīm, ʾinnaka ḥamīdun majīd","Insister particulièrement le jeudi soir et le vendredi toute la journée","Répartir sur plusieurs moments dans la journée"],
+    note:"Tu peux les répartir : 100 après Fajr, 100 en milieu de journée, 100 le soir."
+  },
+  9:{
+    why:"Le croyant qui se couche en état de pureté, dans l'évocation de Dieu, a son ange qui intercède pour lui toute la nuit.",
+    hadith:{text:"Le croyant pieux se tient des comptes plus sévèrement que ne le ferait un roi tyrannique ou un associé avare.",source:"Maymūn ibn Mihrān, tabiʿī"},
+    steps:["Faire le bilan de sa journée : qu'est-ce que j'ai accompli ? qu'est-ce que j'ai manqué ?","Renouveler sa tawba (repentir) sincèrement","Faire les ablutions avant de dormir","Réciter les invocations du sommeil (adhkar al-nawm)","Endormi en état de pureté, en évocation de Dieu","Faire en sorte que ta dernière pensée consciente soit une confidence adressée à ton Seigneur"],
+    note:"Ne te laisse pas entraîner dans des veillées prolongées qui te feraient manquer les devoirs du lendemain. Car celui dont le lendemain n'est pas meilleur que la veille est perdant."
+  },
+  10:{
+    why:"Pour l'étudiant, ses études sont son jihad. C'est le combat propre à sa phase de vie.",
+    hadith:{text:"Dis-moi ce que tu lis, je te dirai qui tu es.",source:"Un sage"},
+    steps:["Après la prière, le Coran et l'évocation de Dieu — consacre-toi à tes études","Révise tes cours avec sérieux et méthode","Ton premier devoir religieux : acquérir un minimum de science islamique","Choisis avec discernement tes lectures : qu'elles nourrissent ta vie présente ET ta vie dernière"],
+    note:"L'étude n'est pas opposée à la spiritualité — elle en fait partie."
+  },
+  11:{
+    why:"La bonne compagnie est l'un des plus grands leviers de la foi. On est influencé par ceux qu'on fréquente.",
+    hadith:{text:"L'homme est sur la religion de son ami intime. Que chacun regarde donc qui il prend pour ami intime.",source:"Abū Dāwūd, At-Tirmidhī"},
+    steps:["Entretenir des liens avec des frères/sœurs pieux","Participer à des cercles de rappel ou d'apprentissage","Fuir les assemblées de la futilité et de la distraction","Appeler les autres au bien par l'exemple avant tout"],
+    note:"Même un coup de téléphone à un frère pieux compte comme un cercle de foi."
+  },
+  12:{
+    why:"Chercher la science est une obligation pour tout musulman. Elle élève les rangs et guide les actes.",
+    hadith:{text:"Celui à qui Dieu veut du bien, Il lui donne la compréhension de la religion.",source:"Al-Bukhārī, Muslim"},
+    steps:["Consacrer un temps quotidien à la lecture d'un livre de science islamique","Commencer par les fondamentaux : croyance, adoration, éthique","Avancer lentement mais régulièrement, avec la compréhension","Ne pas sauter d'un livre à l'autre sans finir"],
+    note:"Un chapitre par jour, compris et retenu, vaut mieux que des heures de lecture superficielle."
+  },
+  13:{
+    why:"Ton temps est ton capital. Chaque heure qui passe sans adoration ni bien est une perte.",
+    hadith:{text:"Deux bienfaits dont beaucoup de gens sont floués : la santé et le temps libre.",source:"Al-Bukhārī"},
+    steps:["Planifier sa journée la veille ou au réveil","Identifier les moments de gaspillage (réseaux, distractions)","Chaque transition entre deux activités : une occasion de dhikr","Se poser la question avant chaque acte : est-ce que cela me rapproche ou m'éloigne ?"],
+    note:"Al-Hassan al-Basri disait : J'ai vu des gens qui étaient plus avares de leur temps que de leur or."
+  },
+  14:{
+    why:"L'invocation du lien spirituel (duʿâʾ ar-râbiṭa) est un acte qui relie les cœurs croyants dans l'amour d'Allah.",
+    hadith:{text:"Nul ne peut aimer son frère pour Allah sans que cela ne l'élève en rang et ne lui ouvre les portes de Sa miséricorde.",source:"Rapporté des maîtres"},
+    steps:["La faire de préférence après la séance de l'aube","Invoquer pour ses frères et sœurs en Islam par leur nom si possible","Demander à Allah de réunir les cœurs sur l'amour de Lui","Terminer par les invocations de clôture"],
+    note:"Cette invocation se fait en silence, intérieurement. Elle n'a pas besoin d'être longue — la sincérité prime."
+  }
+};
+
+const INVOC_LINK={
+  2:{title:"Invocations du matin",tab:'matin'},
+  7:{title:"Le meilleur dhikr — Tahlil",tab:'dhikr',idx:2},
+  8:{title:"La prière sur le Prophète ﷺ",tab:'dhikr',idx:1},
+  9:{title:"Invocations du soir",tab:'soir'},
+};
+let _invocPopupItemId=null, _invocStep=0, _invocItems=[], _invocMode='step';
+function openInvocFromDetail(itemId){
+  const link=INVOC_LINK[itemId];
+  if(!link)return;
+  _invocPopupItemId=itemId;
+  _invocStep=0;
+  document.getElementById('invoc-popup-title').textContent=link.title;
+  if(link.tab==='dhikr'&&link.idx!=null){
+    _invocMode='single';
+    _invocItems=[DHIKR_LIST[link.idx]];
+  } else {
+    _invocMode='step';
+    _invocItems=ADHKAR[link.tab]||[];
+  }
+  document.getElementById('invoc-progress-track').style.display=_invocMode==='step'?'block':'none';
+  _renderInvocPopup();
+  document.getElementById('invoc-popup').classList.add('show');
+}
+function _renderInvocPopup(){
+  const body=document.getElementById('invoc-popup-body');
+  const footer=document.getElementById('invoc-popup-footer');
+  const counter=document.getElementById('invoc-popup-counter');
+  const fill=document.getElementById('invoc-progress-fill');
+  if(_invocMode==='single'){
+    const d=_invocItems[0];
+    counter.textContent='';
+    body.innerHTML=`<div class="invoc-popup-single">
+      <span class="invoc-repeat">× ${d.repeat}</span>
+      <div class="invoc-arabic">${d.arabic}</div>
+      <div class="invoc-phonetic">${d.phonetic}</div>
+      <div class="invoc-french">${d.french}</div>
+      <div class="invoc-source" style="margin-top:10px">${d.source}</div>
+    </div>`;
+    footer.innerHTML=_doneBtn();
+  } else {
+    const total=_invocItems.length;
+    const a=_invocItems[_invocStep];
+    const isLast=_invocStep===total-1;
+    counter.textContent=`${_invocStep+1} / ${total}`;
+    fill.style.width=`${((_invocStep+1)/total)*100}%`;
+    body.innerHTML=`<div class="invoc-step-card">
+      <span class="invoc-step-repeat">× ${a.repeat}</span>
+      <div class="invoc-step-arabic">${a.arabic}</div>
+      <div class="invoc-step-phonetic">${a.phonetic}</div>
+      <div class="invoc-step-french">${a.french}</div>
+      <div class="invoc-step-source">${a.source}</div>
+    </div>`;
+    body.scrollTop=0;
+    if(isLast){
+      footer.innerHTML=_doneBtn();
+    } else {
+      footer.innerHTML=`<div class="invoc-nav-row">
+        <button class="btn-invoc-prev" onclick="_invocPrev()" ${_invocStep===0?'style="visibility:hidden"':''}>←</button>
+        <button class="btn-invoc-next" onclick="_invocNext()">Suivant →</button>
+      </div>`;
+    }
+  }
+}
+function _doneBtn(){
+  const done=!!S.checklist[_invocPopupItemId];
+  return `<button class="btn-invoc-done${done?' done':''}" id="invoc-done-btn" onclick="completeInvocItem()">
+    <span class="done-label">Terminé — barakAllahu fik ✓</span>
+    <span class="done-check">✦ Ma sha Allah ✦</span>
+  </button>`;
+}
+function _invocNext(){
+  if(_invocStep<_invocItems.length-1){_invocStep++;_renderInvocPopup();}
+}
+function _invocPrev(){
+  if(_invocStep>0){_invocStep--;_renderInvocPopup();}
+}
+function closeInvocPopup(){document.getElementById('invoc-popup').classList.remove('show');_invocPopupItemId=null;}
+function completeInvocItem(){
+  const btn=document.getElementById('invoc-done-btn');
+  if(!btn)return;
+  if(btn.classList.contains('done')){closeInvocPopup();return;}
+  const colors=['#BA7517','#3B6D11','#f0c040','#c9930a'];
+  for(let i=0;i<10;i++){
+    const s=document.createElement('div');
+    s.className='popup-spark';
+    const angle=Math.random()*Math.PI*2, dist=40+Math.random()*60, size=4+Math.random()*5;
+    s.style.cssText=`width:${size}px;height:${size}px;background:${colors[i%colors.length]};left:50%;top:50%;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist-20}px;`;
+    btn.appendChild(s);
+    setTimeout(()=>s.remove(),700);
+  }
+  btn.classList.add('done');
+  if(_invocPopupItemId!==null&&!S.checklist[_invocPopupItemId]){
+    S.checklist[_invocPopupItemId]=true;
+    save();
+    const items=getActiveItems();
+    const allDone=items.every(i=>S.checklist[i.id]);
+    setTimeout(()=>{renderPathSmooth();if(allDone)fireCompletionOverlay();},600);
+  }
+  setTimeout(()=>closeInvocPopup(),1600);
+}
+function openDetail(id){
+  if(id===2&&getCurrentCat()==="aube"){openAubeTimer();return;}
+  const item=PROGRAM.find(i=>i.id===id);
+  const det=ITEM_DETAILS[id];
+  if(!item||!det)return;
+  const done=!!S.checklist[id];
+  const c=document.getElementById("detail-content");
+  const stepsHtml=det.steps?det.steps.map((s,i)=>`
+    <div class="detail-step-row fade-up" style="animation-delay:${.3+i*.06}s">
+      <div class="detail-step-left">
+        <div class="detail-step-num">${i+1}</div>
+        <div class="detail-step-line"></div>
+      </div>
+      <div class="detail-step-text">${s}</div>
+    </div>`).join(""):"";
+  c.innerHTML=`
+    <div class="detail-hero">
+      <span class="detail-hero-emoji">${item.emoji}</span>
+      <div class="detail-hero-title">${item.titleFr}</div>
+      <div><div class="detail-hero-pill"><span>⏱ ${item.time} &nbsp;·&nbsp; +${item.xp} XP</span></div></div>
+    </div>
+    <div class="detail-body">
+      ${det.why?`<p class="fade-up" style="font-size:14px;color:var(--text-secondary);line-height:1.75;text-align:center;padding:0 4px;animation-delay:.2s">${det.why}</p>`:""}
+      ${det.hadith?`
+      <div class="detail-quote">
+        <span class="detail-quote-marks">❝</span>
+        <div class="detail-quote-text">${det.hadith.text}</div>
+        <div class="detail-quote-source">— ${det.hadith.source}</div>
+      </div>
+      <div class="detail-divider"></div>`:""}
+      ${det.steps?`
+      <div class="detail-section-label fade-up" style="animation-delay:.28s">Comment procéder</div>
+      <div class="detail-timeline">${stepsHtml}</div>`:""}
+      ${det.note?`
+      <div class="detail-tip fade-up" style="animation-delay:${.3+det.steps.length*.06}s">
+        <span class="detail-tip-icon">💡</span>
+        <div class="detail-tip-text">${det.note}</div>
+      </div>`:""}
+      <div class="detail-cta fade-up" style="animation-delay:.5s">
+        <button class="btn-done${done?" undone":""}" onclick="toggleItem(${id});closeDetail()">
+          ${done?"↩ Annuler l'action":"✓ Accompli — barakAllahu fik"}
+        </button>
+        <button class="btn-secondary" onclick="closeDetail()">Fermer</button>
+      </div>
+    </div>`;
+  document.getElementById("detail-modal").classList.add("show");
+}
+function closeDetail(){document.getElementById("detail-modal").classList.remove("show");}
+document.getElementById("detail-modal").addEventListener("click",function(e){if(e.target===this)closeDetail();});
+
+// ═══ THEMES ═══
+const THEMES = {
+  default:   {name:"Sable doré",      emoji:"✨", bg:"#f5ede0", bgCard:"#faeeda", accent:"#BA7517", accentDk:"#8a6020", accentLt:"#faeeda", text:"#3d2a0a", textSec:"#8a6020", textLt:"#b89060", green:"#3B6D11", greenLt:"#EAF3DE", br:"186,117,23", sh:"138,96,32"},
+  foret:     {name:"Forêt",           emoji:"🌿", bg:"#f0f5ed", bgCard:"#e6f0e2", accent:"#2d6a2a", accentDk:"#1a4a18", accentLt:"#e6f0e2", text:"#0f2a0e", textSec:"#2a5a28", textLt:"#6a9a68", green:"#2d6a2a", greenLt:"#e6f0e2", br:"45,106,42",   sh:"30,80,28"},
+  ocean:     {name:"Océan",           emoji:"🌊", bg:"#f0f7fa", bgCard:"#e3f2f8", accent:"#0077a8", accentDk:"#005a7a", accentLt:"#e3f2f8", text:"#0a2a3d", textSec:"#2a6480", textLt:"#6a9ab0", green:"#0a7a5a", greenLt:"#d0f0e8", br:"0,119,168",    sh:"0,100,150"},
+  turquoise: {name:"Turquoise",       emoji:"💎", bg:"#f0faf8", bgCard:"#e0f5f0", accent:"#1a9a88", accentDk:"#0a7060", accentLt:"#e0f5f0", text:"#0a2820", textSec:"#1a6858", textLt:"#5aaa98", green:"#1a9a88", greenLt:"#d0f0e8", br:"26,154,136",   sh:"10,100,80"},
+  lavande:   {name:"Lavande",         emoji:"💜", bg:"#f5f0fa", bgCard:"#ede5f8", accent:"#7048b8", accentDk:"#4a2888", accentLt:"#ede5f8", text:"#1e0a40", textSec:"#5a38a0", textLt:"#9a80c8", green:"#3a8a5a", greenLt:"#d8f0e4", br:"112,72,184",   sh:"80,40,150"},
+  grenat:    {name:"Grenat",          emoji:"❤️", bg:"#faf0f0", bgCard:"#f8e4e4", accent:"#a82828", accentDk:"#781a1a", accentLt:"#f8e4e4", text:"#2a0a0a", textSec:"#782828", textLt:"#c07070", green:"#3a7a3a", greenLt:"#e4f4e4", br:"168,40,40",    sh:"130,20,20"},
+  ardoise:   {name:"Ardoise",         emoji:"🩶", bg:"#f2f4f7", bgCard:"#e8ecf2", accent:"#4a5a78", accentDk:"#2a3a58", accentLt:"#e8ecf2", text:"#0a1020", textSec:"#3a4a68", textLt:"#7a8aa8", green:"#2a7a5a", greenLt:"#d8efe8", br:"74,90,120",    sh:"40,60,100"},
+  rose:      {name:"Rose du désert",  emoji:"🌸", bg:"#faf3f5", bgCard:"#f5e8ec", accent:"#c04878", accentDk:"#8a2850", accentLt:"#f5e8ec", text:"#2a0a14", textSec:"#8a3060", textLt:"#c888a0", green:"#3a7a5a", greenLt:"#ddf0e8", br:"192,72,120",   sh:"150,40,80"},
+  nuit:      {name:"Nuit des étoiles",emoji:"🌙", bg:"#0f1923", bgCard:"#1a2535", accent:"#4a9eda", accentDk:"#2a7ab8", accentLt:"#1a2d40", text:"#e8f0f8", textSec:"#8ab0cc", textLt:"#4a7090", green:"#3ab88a", greenLt:"#0d2a20", br:"74,158,218",   sh:"0,0,0", dark:true},
+  encre:     {name:"Encre",           emoji:"🖤", bg:"#16131a", bgCard:"#221e2a", accent:"#a57aeb", accentDk:"#7a4ac8", accentLt:"#2a2035", text:"#ede8f8", textSec:"#9a80c8", textLt:"#5a4880", green:"#5ac88a", greenLt:"#102218", br:"165,122,235",  sh:"0,0,0", dark:true},
+};
+function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`${r},${g},${b}`;}
+function applyTheme(key){
+  const t=THEMES[key]||THEMES.default;
+  const r=document.documentElement.style;
+  r.setProperty('--bg',t.bg);
+  r.setProperty('--bg-card',t.bgCard);
+  r.setProperty('--bg-glass',`rgba(${hexToRgb(t.bg)},0.85)`);
+  r.setProperty('--accent',t.accent);
+  r.setProperty('--accent-dark',t.accentDk);
+  r.setProperty('--accent-light',t.accentLt);
+  r.setProperty('--text',t.text);
+  r.setProperty('--text-secondary',t.textSec);
+  r.setProperty('--text-light',t.textLt);
+  r.setProperty('--green',t.green);
+  r.setProperty('--green-light',t.greenLt);
+  r.setProperty('--border',`rgba(${t.br},0.2)`);
+  r.setProperty('--border-light',`rgba(${t.br},0.1)`);
+  r.setProperty('--shadow',`0 2px 16px rgba(${t.sh},${t.dark?'0.4':'0.10'})`);
+  r.setProperty('--overlay',t.dark?'rgba(0,0,0,0.65)':'rgba(61,42,10,0.45)');
+  localStorage.setItem('dawam_theme',key);
+}
+function loadTheme(){applyTheme(localStorage.getItem('dawam_theme')||'default');}
+function renderThemeGrid(){
+  const current=localStorage.getItem('dawam_theme')||'default';
+  document.getElementById('theme-grid').innerHTML=Object.entries(THEMES).map(([key,t])=>`
+    <div class="theme-card${key===current?' active':''}" onclick="selectTheme('${key}')">
+      <div class="theme-card-emoji">${t.emoji}</div>
+      <div class="theme-card-swatches">
+        <div class="theme-swatch" style="background:${t.bg}"></div>
+        <div class="theme-swatch" style="background:${t.accent}"></div>
+        <div class="theme-swatch" style="background:${t.green}"></div>
+      </div>
+      <div class="theme-card-name">${t.name}</div>
+    </div>`).join('');
+}
+function selectTheme(key){applyTheme(key);renderThemeGrid();}
+function showThemeModal(){renderThemeGrid();document.getElementById('theme-modal').classList.add('show');}
+function closeThemeModal(){document.getElementById('theme-modal').classList.remove('show');}
+document.getElementById('theme-modal').addEventListener('click',function(e){if(e.target===this)closeThemeModal();});
+
+// ═══ NOTIFICATIONS (Web Push) ═══
+// ⚠️  Remplace cette URL après avoir déployé le Worker Cloudflare
+const PUSH_WORKER = "https://dawam-push.mydawam.workers.dev";
+
+function urlB64ToUint8(str) {
+  const p = str.replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(p + '='.repeat((4 - p.length % 4) % 4));
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+
+async function getVapidKey() {
+  const res = await fetch(`${PUSH_WORKER}/public-key`);
+  const { key } = await res.json();
+  return key;
+}
+
+async function subscribePush() {
+  const reg = await navigator.serviceWorker.ready;
+  const vapidKey = await getVapidKey();
+  return reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8(vapidKey),
+  });
+}
+
+async function toggleNotifs() {
+  if (!('Notification' in window) || !('PushManager' in window)) {
+    showToast("Notifications non supportées sur ce navigateur");
+    return;
+  }
+
+  const isOn = !!(S.notifs?.pushSub);
+
+  if (isOn) {
+    // Désactiver
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await fetch(`${PUSH_WORKER}/unsubscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+    } catch {}
+    S.notifs = { pushSub: null };
+    save();
+    renderNotifToggle();
+    showToast("Rappels désactivés");
+    return;
+  }
+
+  // Demander la permission
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    showToast("Permission refusée — active-la dans les paramètres");
+    return;
+  }
+
+  try {
+    showToast("Activation en cours…");
+    const sub = await subscribePush();
+    await fetch(`${PUSH_WORKER}/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...sub.toJSON(), city: S.profile?.city || '' }),
+    });
+    S.notifs = { pushSub: sub.endpoint };
+    save();
+    renderNotifToggle();
+    showToast("Rappels activés ✓ — tu recevras une notif chaque matin");
+  } catch (e) {
+    showToast("Erreur — vérifie que l'app est installée");
+    console.error(e);
+  }
+}
+
+function renderNotifToggle() {
+  const toggle = document.getElementById('notif-toggle');
+  if (toggle) toggle.classList.toggle('on', !!(S.notifs?.pushSub));
+}
+
+// ═══ DARK MODE ═══
+function isDarkMode(){return !!(THEMES[localStorage.getItem('dawam_theme')||'default']?.dark);}
+function toggleDarkMode(){
+  const current=localStorage.getItem('dawam_theme')||'default';
+  if(isDarkMode()){
+    applyTheme(localStorage.getItem('dawam_last_light')||'default');
+  } else {
+    localStorage.setItem('dawam_last_light',current);
+    applyTheme('nuit');
+  }
+  const toggle=document.getElementById('dark-toggle');
+  if(toggle)toggle.classList.toggle('on',isDarkMode());
+}
+
+// ═══ ABOUT ═══
+function showAbout(){document.getElementById("about-modal").classList.add("show");}
+function closeAbout(){document.getElementById("about-modal").classList.remove("show");}
+document.getElementById("about-modal").addEventListener("click",function(e){if(e.target===this)closeAbout();});
+
+// ═══ FEEDBACK ═══
+let fbRating = 0;
+function showFeedbackModal(){
+  fbRating=0;
+  document.getElementById('fb-content').innerHTML=`
+    <div class="fb-title">Ton avis compte</div>
+    <div class="fb-sub">Comment tu trouves Dawam jusqu'ici ? Ton retour aide à améliorer l'app.</div>
+    <div class="fb-ratings" id="fb-ratings">
+      <div class="fb-rating" data-val="1" onclick="selectRating(1)"><div class="fb-rating-emoji">😕</div><div class="fb-rating-label">Difficile</div></div>
+      <div class="fb-rating" data-val="2" onclick="selectRating(2)"><div class="fb-rating-emoji">🙂</div><div class="fb-rating-label">Bien</div></div>
+      <div class="fb-rating" data-val="3" onclick="selectRating(3)"><div class="fb-rating-emoji">🌟</div><div class="fb-rating-label">Excellent</div></div>
+    </div>
+    <textarea class="fb-textarea" id="fb-text" placeholder="Un commentaire, une suggestion… (optionnel)" maxlength="400"></textarea>
+    <button class="btn-primary" id="fb-send" onclick="submitFeedback()" disabled>Envoyer</button>
+    <button class="btn-secondary" onclick="closeFeedbackModal()">Annuler</button>`;
+  document.getElementById('feedback-modal').classList.add('show');
+}
+function closeFeedbackModal(){document.getElementById('feedback-modal').classList.remove('show');}
+document.getElementById('feedback-modal').addEventListener('click',function(e){if(e.target===this)closeFeedbackModal();});
+function selectRating(val){
+  fbRating=val;
+  document.querySelectorAll('.fb-rating').forEach(el=>el.classList.toggle('selected',Number(el.dataset.val)===val));
+  document.getElementById('fb-send').disabled=false;
+}
+async function submitFeedback(){
+  const comment=document.getElementById('fb-text').value.trim();
+  if(!fbRating)return;
+  const btn=document.getElementById('fb-send');
+  btn.disabled=true;btn.textContent='Envoi…';
+  try{
+    await fetch(`${PUSH_WORKER}/feedback`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({rating:fbRating,comment,palier:S.palier,name:S.name||''}),
+    });
+    const emojis={1:'🤲',2:'💚',3:'🌟'};
+    const msgs={1:'Merci pour ton honnêteté — chaque retour aide à améliorer Dawam.',2:'Jazak Allah khayran !',3:'Alhamdulillah ! Que Allah te bénisse dans ta constance.'};
+    document.getElementById('fb-content').innerHTML=`<div class="fb-sent"><div class="fb-sent-emoji">${emojis[fbRating]}</div><div class="fb-sent-msg">${msgs[fbRating]}</div></div><button class="btn-primary" style="margin-top:16px" onclick="closeFeedbackModal()">Fermer</button>`;
+  }catch(e){
+    btn.disabled=false;btn.textContent='Envoyer';
+    showToast('Erreur — réessaie plus tard');
+  }
+}
+
+// ═══ PWA INSTALL ═══
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;});
+function isIOS(){return/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;}
+function isInStandaloneMode(){return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone;}
+function showInstallBanner(){
+  if(isInStandaloneMode())return;
+  if(localStorage.getItem("install_dismissed"))return;
+  document.getElementById("install-banner").classList.add("show");
+}
+function closeBanner(){document.getElementById("install-banner").classList.remove("show");localStorage.setItem("install_dismissed","1");}
+function showInstallInstructions(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;closeBanner();});return;}
+  if(isIOS()){alert("Pour installer Dawam :\n\n1. Appuie sur le bouton Partager (□↑) en bas de Safari\n2. Choisis \"Sur l'écran d'accueil\"\n3. Appuie sur \"Ajouter\"\n\nDawam apparaîtra comme une vraie app !");return;}
+  showToast("Utilise le menu de ton navigateur → Installer l'application");
+}
+
+// ═══ SERVICE WORKER ═══
+let _swWaiting=null;
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      // Nouvelle version en cours d'installation
+      reg.addEventListener("updatefound",()=>{
+        const nw=reg.installing;
+        nw.addEventListener("statechange",()=>{
+          if(nw.state==="installed"&&navigator.serviceWorker.controller){
+            _swWaiting=nw;
+            document.getElementById("update-banner").classList.add("show");
+          }
+        });
+      });
+      // Vérifier si un SW attend déjà (cas où la page a été rechargée)
+      if(reg.waiting&&navigator.serviceWorker.controller){
+        _swWaiting=reg.waiting;
+        document.getElementById("update-banner").classList.add("show");
+      }
+    }).catch(()=>{});
+    // Recharger quand le nouveau SW prend le contrôle
+    let _refreshing=false;
+    navigator.serviceWorker.addEventListener("controllerchange",()=>{
+      if(!_refreshing){_refreshing=true;location.reload();}
+    });
+  });
+}
+function applyUpdate(){
+  if(_swWaiting){_swWaiting.postMessage("skipWaiting");}
+  else{location.reload();}
+}
+
+// ═══ PRAYER TIMES ═══
+const PT_CACHE_KEY="dawam_pt";
+function parseTime(t){if(!t)return 0;const[h,m]=t.split(":").map(Number);return h*60+m;}
+async function fetchPrayerTimes(city){
+  if(!city)return null;
+  const today=new Date();
+  const dateStr=`${String(today.getDate()).padStart(2,"0")}-${String(today.getMonth()+1).padStart(2,"0")}-${today.getFullYear()}`;
+  const cacheRaw=localStorage.getItem(PT_CACHE_KEY);
+  if(cacheRaw){try{const c=JSON.parse(cacheRaw);if(c.date===dateStr&&c.city===city)return c.timings;}catch{}}
+  try{
+    const url=`https://api.aladhan.com/v1/timingsByAddress/${dateStr}?address=${encodeURIComponent(city)}&method=2`;
+    const r=await fetch(url);const data=await r.json();
+    if(data.code===200){const timings=data.data.timings;localStorage.setItem(PT_CACHE_KEY,JSON.stringify({date:dateStr,city,timings}));return timings;}
+  }catch{}
+  return null;
+}
+
+// ═══ AUBE TIMER ═══
+const AUBE_STEPS=[
+  {emoji:"📿",title:"Invocations du matin",subtitle:"Adhkar al-ṣabāḥ",minutes:15,desc:"Lis les invocations du matin avec présence du cœur. Prends le temps de peser chaque parole."},
+  {emoji:"✨",title:"Sourates méritoires",subtitle:"Programme matinal",minutes:15,desc:"Récite les sourates méritoires : Āyat al-Kursī, les 3 Protectrices, et les sourates de ton programme."},
+  {emoji:"📖",title:"Lecture du Coran",subtitle:"Wird coranique",minutes:15,desc:"Lis ta portion quotidienne du Coran (wird). La présence du cœur prime sur la vitesse."},
+  {emoji:"🔗",title:"Du'a rabita",subtitle:"Invocation du lien spirituel",minutes:5,desc:"Invoque pour tes frères et sœurs en Islam. Demande à Allah de réunir les cœurs sur Son amour."},
+  {emoji:"🌅",title:"Recueillement",subtitle:"Jusqu'au lever du soleil",minutes:10,desc:"Reste en recueillement et dhikr silencieux. Attends le lever du soleil avec présence du cœur."},
+  {emoji:"☀️",title:"Prière du Chourouk",subtitle:"2 à 8 raka'at",minutes:10,desc:"Prie le Chourouk — 15 à 20 min après le lever du soleil. Récompense d'un pèlerinage et d'une ʿumra complète."},
+];
+let _aubeSteps=[],aubeTimerStep=0,aubeTimerInterval=null,aubeTimerEnd=null;
+
+function openAubeTimer(){
+  const pt=S.prayerTimes;
+  const steps=AUBE_STEPS.map(s=>({...s}));
+  if(pt&&pt.Sunrise){
+    const now=new Date();
+    const cur=now.getHours()*60+now.getMinutes();
+    let toChourouk=parseTime(pt.Sunrise)-cur;
+    if(toChourouk<0)toChourouk+=1440;
+    if(toChourouk>5&&toChourouk<120){
+      const fixedTotal=15+15+15+5+10; // steps 0-3 + chourouk
+      const recueillement=Math.max(2,toChourouk-fixedTotal);
+      steps[4]={...steps[4],minutes:recueillement};
+    }
+  }
+  _aubeSteps=steps;
+  aubeTimerStep=0;
+  document.getElementById("aube-timer").classList.add("show");
+  renderAubeStep();
+}
+function renderAubeStep(){
+  const step=_aubeSteps[aubeTimerStep];
+  const total=_aubeSteps.length;
+  const pct=Math.round(aubeTimerStep/total*100);
+  const isLast=aubeTimerStep===total-1;
+  const pt=S.prayerTimes;
+  let info="";
+  if(pt&&pt.Sunrise){
+    const now=new Date();
+    const cur=now.getHours()*60+now.getMinutes();
+    let rem=parseTime(pt.Sunrise)-cur;
+    if(rem<0)rem+=1440;
+    const h=Math.floor(rem/60),m=rem%60;
+    info=`Chourouk dans ${h>0?h+"h ":""}${m}min · ${pt.Sunrise}`;
+  }
+  document.getElementById("aube-step-label").textContent=`Étape ${aubeTimerStep+1} / ${total}`;
+  document.getElementById("aube-step-emoji").textContent=step.emoji;
+  document.getElementById("aube-step-title").textContent=step.title;
+  document.getElementById("aube-step-subtitle").textContent=step.subtitle;
+  document.getElementById("aube-step-desc").textContent=step.desc;
+  document.getElementById("aube-chourouk-info").textContent=info;
+  document.getElementById("aube-progress-fill").style.width=pct+"%";
+  document.getElementById("aube-next-btn").textContent=isLast?"✓ Terminer la séance →":"Étape suivante →";
+  if(aubeTimerInterval)clearInterval(aubeTimerInterval);
+  if(step.minutes>0){
+    aubeTimerEnd=Date.now()+step.minutes*60*1000;
+    updateAubeCountdown();
+    aubeTimerInterval=setInterval(updateAubeCountdown,1000);
+  }else{
+    document.getElementById("aube-countdown").textContent="";
+    document.getElementById("aube-countdown").classList.remove("ending");
+  }
+}
+function updateAubeCountdown(){
+  const rem=Math.max(0,aubeTimerEnd-Date.now());
+  const m=Math.floor(rem/60000),s=Math.floor((rem%60000)/1000);
+  const cd=document.getElementById("aube-countdown");
+  cd.textContent=`${m}:${String(s).padStart(2,"0")}`;
+  cd.classList.toggle("ending",rem<60000&&rem>0);
+  if(rem===0){clearInterval(aubeTimerInterval);playAubeBeep();setTimeout(()=>aubeNextStep(),2500);}
+}
+function aubeNextStep(){
+  if(aubeTimerStep<_aubeSteps.length-1){aubeTimerStep++;renderAubeStep();playAubeBeep();}
+  else{closeAubeTimer();}
+}
+function closeAubeTimer(){
+  if(aubeTimerInterval)clearInterval(aubeTimerInterval);
+  document.getElementById("aube-timer").classList.remove("show");
+}
+function playAubeBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=880;osc.type="sine";
+    gain.gain.setValueAtTime(0.3,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1.2);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+1.2);
+  }catch{}
+}
+
+// ═══ ANALYTICS ═══
+function getUid() {
+  let uid = localStorage.getItem('_dawam_uid');
+  if (!uid) { uid = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('_dawam_uid', uid); }
+  return uid;
+}
+function track(event) {
+  fetch(`${PUSH_WORKER}/track`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event, uid: getUid() }),
+  }).catch(() => {});
+}
+
+// ═══ INIT ═══
+function launchApp(){
+  showScreen("path");
+  document.getElementById("bottom-nav").classList.add("visible");
+  document.getElementById("tab-path").classList.add("active");
+  renderPath();
+  if(S.profile&&S.profile.city){
+    fetchPrayerTimes(S.profile.city).then(pt=>{if(pt){S.prayerTimes=pt;save();renderPath();}});
+  }
+  setTimeout(showInstallBanner,3000);
+}
+
+// Notifications push — à configurer ultérieurement
+
+load();
+if(S.name){launchApp();track('launch');}else{showScreen("splash");}
+</script>
+<!-- Overlay journée complète -->
+<div id="dawam-completion-overlay">
+  <span id="dawam-center-star">✦</span>
+  <div class="dawam-cp" id="dcp1" style="background:#BA7517;width:10px;height:10px;"></div>
+  <div class="dawam-cp" id="dcp2" style="background:#3B6D11;width:8px;height:8px;"></div>
+  <div class="dawam-cp" id="dcp3" style="background:#f0c040;width:6px;height:6px;"></div>
+  <div class="dawam-cp" id="dcp4" style="background:#BA7517;width:7px;height:7px;"></div>
+  <div class="dawam-cp" id="dcp5" style="background:#3B6D11;width:9px;height:9px;"></div>
+  <div class="dawam-cp" id="dcp6" style="background:#c9930a;width:6px;height:6px;"></div>
+  <div id="dawam-completion-msg">
+    <h2>Ma sha Allah</h2>
+    <p>"Petit, mais constant."<br>Journée complète — barakAllahu fik.</p>
+  </div>
+</div>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "1072044f08d248e0be77669337b38ac2"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
