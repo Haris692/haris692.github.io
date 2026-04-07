@@ -117,7 +117,7 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
 
 /* ONBOARDING */
 #onboarding { background:var(--bg);overflow:hidden; }
-.ob-page { display:none;flex-direction:column;padding:clamp(20px,5vh,40px) 24px 0;height:100%; }
+.ob-page { display:none;flex-direction:column;padding:clamp(20px,5vh,40px) 24px 0;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch; }
 .ob-page.active { display:flex; }
 .ob-dots { display:flex;gap:5px;justify-content:center;margin-bottom:clamp(14px,3vh,28px); }
 .ob-dot { width:6px;height:6px;border-radius:3px;background:var(--border);transition:all .3s; }
@@ -140,7 +140,7 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
 .ob-option.selected .ob-radio-dot { display:block;animation:checkPop .25s ease; }
 .ob-name-input { width:100%;padding:16px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg-card);font-family:var(--font-body);font-size:18px;font-weight:600;color:var(--text);outline:none;transition:border-color .2s; }
 .ob-name-input:focus { border-color:var(--accent); }
-.ob-bottom { margin-top:auto;flex-shrink:0;padding:12px 0 clamp(16px,3.5vh,28px);display:flex;align-items:center;justify-content:space-between;background:var(--bg); }
+.ob-bottom { margin-top:auto;flex-shrink:0;padding:12px 0 clamp(16px,3.5vh,28px);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;bottom:0;z-index:2; }
 .ob-back { width:44px;height:44px;border-radius:22px;background:rgba(186,117,23,.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px; }
 .ob-counter { font-size:13px;font-weight:500;color:var(--text-light); }
 .ob-next { display:flex;align-items:center;gap:8px;padding:12px 22px;border-radius:20px;border:none;cursor:pointer;font-family:var(--font-body);font-size:14px;font-weight:600;color:#fff;transition:opacity .15s; }
@@ -183,6 +183,14 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
 .ob-prayer-card.selected .ob-prayer-chk { border-color:var(--green);background:var(--green); }
 .ob-prayer-chk svg { display:none; }
 .ob-prayer-card.selected .ob-prayer-chk svg { display:block; }
+/* CITY AUTOCOMPLETE */
+.city-sug-wrap { width:100%;position:relative;margin-top:0; }
+.city-sug-list { position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-card);border:1.5px solid var(--green);border-radius:12px;overflow:hidden;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.12); }
+.city-sug-item { padding:13px 14px;cursor:pointer;font-size:14px;color:var(--text);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px; }
+.city-sug-item:last-child { border-bottom:none; }
+.city-sug-item:active { background:var(--bg-glass); }
+.city-sug-none { padding:12px 14px;font-size:13px;color:var(--text-light);text-align:center; }
+
 /* CORAN SUB-OPTIONS */
 .ob-coran-sub { width:100%;margin-top:10px; }
 .ob-coran-sub-label { font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:8px; }
@@ -682,11 +690,13 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
     <p class="ob-label">Question 3 sur 5</p>
     <h1 class="ob-title">La prière de nuit</h1>
     <p class="ob-desc">Le pilier fondamental du programme spirituel quotidien.</p>
-    <div class="ob-options" data-key="witr">
-      <div class="ob-option" data-value="0" onclick="selectOption(this)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Pas encore</div><div class="ob-option-desc">Je n'ai pas encore cette habitude</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
-      <div class="ob-option" data-value="1" onclick="selectOption(this)"><span class="ob-option-emoji">🌿</span><div class="ob-option-text"><div class="ob-option-label">Parfois</div><div class="ob-option-desc">De temps en temps</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
-      <div class="ob-option" data-value="2" onclick="selectOption(this)"><span class="ob-option-emoji">🌳</span><div class="ob-option-text"><div class="ob-option-label">Régulièrement</div><div class="ob-option-desc">Prière de nuit + programme nocturne</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+    <div class="ob-options" id="witr-main-options">
+      <div class="ob-option" data-value="0" onclick="selectWitrType(this,0)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Pas encore</div><div class="ob-option-desc">Je dors jusqu'au Fajr</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="1" onclick="selectWitrType(this,1)"><span class="ob-option-emoji">🌙</span><div class="ob-option-text"><div class="ob-option-label">Le Witr seul</div><div class="ob-option-desc">1 rak'a avant le Fajr, parfois</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="2" onclick="selectWitrType(this,2)"><span class="ob-option-emoji">🌿</span><div class="ob-option-text"><div class="ob-option-label">Witr + Chaf'</div><div class="ob-option-desc">3 rak'aat régulièrement</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="3" onclick="selectWitrType(this,3)"><span class="ob-option-emoji">🌳</span><div class="ob-option-text"><div class="ob-option-label">Qiyam complet</div><div class="ob-option-desc">7 à 11 rak'aat — programme nocturne</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
     </div>
+    <div class="ob-coran-sub" id="witr-sub" style="display:none"></div>
     <div class="ob-bottom">
       <button class="ob-back" onclick="obBack()">←</button>
       <span class="ob-counter">6 / 11</span>
@@ -699,11 +709,13 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
     <div class="ob-emoji-circle">🧭</div>
     <p class="ob-label">Question 4 sur 5</p>
     <h1 class="ob-title">Ta situation de vie</h1>
-    <p class="ob-desc">Pour adapter ton parcours à ton rythme de vie.</p>
-    <div class="ob-options" data-key="type">
-      <div class="ob-option" data-value="worker" onclick="selectOption(this)"><span class="ob-option-emoji">💼</span><div class="ob-option-text"><div class="ob-option-label">Actif / Travailleur</div><div class="ob-option-desc">Journées chargées, sessions courtes</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
-      <div class="ob-option" data-value="student" onclick="selectOption(this)"><span class="ob-option-emoji">📚</span><div class="ob-option-text"><div class="ob-option-label">Étudiant</div><div class="ob-option-desc">Temps d'étude à intégrer au programme</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
-      <div class="ob-option" data-value="married" onclick="selectOption(this)"><span class="ob-option-emoji">🏡</span><div class="ob-option-text"><div class="ob-option-label">En famille</div><div class="ob-option-desc">Actes relationnels inclus dans le parcours</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+    <p class="ob-desc">Tu peux choisir plusieurs situations — le parcours s'adaptera.</p>
+    <div class="ob-options" data-key="situations" data-multi="true">
+      <div class="ob-option" data-value="worker" onclick="selectOption(this)"><span class="ob-option-emoji">💼</span><div class="ob-option-text"><div class="ob-option-label">Travail</div><div class="ob-option-desc">Journées chargées, contraintes d'horaire</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="student" onclick="selectOption(this)"><span class="ob-option-emoji">📚</span><div class="ob-option-text"><div class="ob-option-label">Études</div><div class="ob-option-desc">Lycée, université, formation</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="married" onclick="selectOption(this)"><span class="ob-option-emoji">🏡</span><div class="ob-option-text"><div class="ob-option-label">En famille</div><div class="ob-option-desc">Conjoint, enfants, vie commune</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="home" onclick="selectOption(this)"><span class="ob-option-emoji">🏠</span><div class="ob-option-text"><div class="ob-option-label">À la maison</div><div class="ob-option-desc">Horaire libre, sans contrainte fixe</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="night_shift" onclick="selectOption(this)"><span class="ob-option-emoji">🌙</span><div class="ob-option-text"><div class="ob-option-label">Travail de nuit</div><div class="ob-option-desc">Horaires décalés ou nuit</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
     </div>
     <div class="ob-bottom">
       <button class="ob-back" onclick="obBack()">←</button>
@@ -720,9 +732,10 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
     <p class="ob-desc">Choisis une ou plusieurs intentions — elles guideront ton message quotidien.</p>
     <div class="ob-options" data-key="goal" data-multi="true">
       <div class="ob-option" data-value="taqwa" onclick="selectOption(this)"><span class="ob-option-emoji">💚</span><div class="ob-option-text"><div class="ob-option-label">Me rapprocher d'Allah</div><div class="ob-option-desc">Renforcer mon lien et ma dévotion</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
-      <div class="ob-option" data-value="habits" onclick="selectOption(this)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Bâtir des habitudes</div><div class="ob-option-desc">Être constant dans mes adorations</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="habits" onclick="selectOption(this)"><span class="ob-option-emoji">🌱</span><div class="ob-option-text"><div class="ob-option-label">Être constant dans mon deen</div><div class="ob-option-desc">Installer des habitudes durables, sans pression</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
       <div class="ob-option" data-value="serenity" onclick="selectOption(this)"><span class="ob-option-emoji">🕊️</span><div class="ob-option-text"><div class="ob-option-label">Trouver la sérénité</div><div class="ob-option-desc">Paix du cœur et équilibre intérieur</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
       <div class="ob-option" data-value="knowledge" onclick="selectOption(this)"><span class="ob-option-emoji">📚</span><div class="ob-option-text"><div class="ob-option-label">Apprendre ma religion</div><div class="ob-option-desc">Mieux comprendre et pratiquer l'Islam</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
+      <div class="ob-option" data-value="relations" onclick="selectOption(this)"><span class="ob-option-emoji">🤲</span><div class="ob-option-text"><div class="ob-option-label">Être meilleur envers mes proches</div><div class="ob-option-desc">Famille, amis, communauté</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>
     </div>
     <div class="ob-bottom">
       <button class="ob-back" onclick="obBack()">←</button>
@@ -737,7 +750,10 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
     <p class="ob-label">Horaires de prière</p>
     <h1 class="ob-title">Ta ville</h1>
     <p class="ob-desc">Pour adapter ton programme aux horaires de prière exacts. Optionnel — tu pourras le modifier plus tard.</p>
-    <input class="ob-name-input" type="text" placeholder="Ex: Paris, Casablanca, Dubaï…" id="city-input" oninput="checkCityInput()" autocomplete="off">
+    <div class="city-sug-wrap">
+      <input class="ob-name-input" type="text" placeholder="Ex: Paris, Casablanca, Dubaï…" id="city-input" oninput="checkCityInput()" autocomplete="off">
+      <div id="city-suggestions"></div>
+    </div>
     <div class="ob-bottom">
       <button class="ob-back" onclick="obBack()">←</button>
       <span class="ob-counter">9 / 11</span>
@@ -996,26 +1012,27 @@ body { font-family: var(--font-body); background: var(--bg); height: 100vh; heig
 <script>
 // ═══ DATA ═══
 const PROGRAM = [
-  {id:1,  titleFr:"Prière de nuit",                emoji:"🌙", time:"Avant le Fajr",    xp:25, cat:"qiyam",   paliers:[4]},
-  {id:3,  titleFr:"Prière du matin",               emoji:"🌅", time:"À l'aube",          xp:15, cat:"aube",    paliers:[3,4]},
-  {id:2,  titleFr:"Séance après l'aube",           emoji:"🌄", time:"Après le Fajr",     xp:20, cat:"aube",    paliers:[2,3,4]},
-  {id:14, titleFr:"Invocation du lien spirituel",  emoji:"🔗", time:"À l'aube",          xp:15, cat:"aube",    paliers:[3,4]},
-  {id:5,  titleFr:"Lecture du Coran",              emoji:"📖", time:"À l'aube",          xp:25, cat:"aube",    paliers:[1,2,3,4]},
-  {id:6,  titleFr:"Sourates méritoires",           emoji:"✨", time:"À l'aube",          xp:20, cat:"aube",    paliers:[2,3,4]},
-  {id:4,  titleFr:"Prières complémentaires",       emoji:"🤲", time:"Dans la journée",   xp:15, cat:"journee", paliers:[3,4]},
-  {id:7,  titleFr:"Témoignage d'unicité — 3×15min",emoji:"💫", time:"Dans la journée",   xp:20, cat:"journee", paliers:[3,4]},
-  {id:8,  titleFr:"Bénédictions sur le Prophète ﷺ",emoji:"💚", time:"Toute la journée",  xp:20, cat:"journee", paliers:[2,3,4]},
-  {id:10, titleFr:"Obligations de l'étudiant",     emoji:"📚", time:"Dans la journée",   xp:15, cat:"journee", paliers:[4]},
-  {id:11, titleFr:"Cercle de foi",                 emoji:"🤝", time:"Dans la journée",   xp:20, cat:"journee", paliers:[4]},
-  {id:12, titleFr:"Acquisition du savoir",         emoji:"📗", time:"Dans la journée",   xp:15, cat:"journee", paliers:[4]},
-  {id:13, titleFr:"Garde du temps",                emoji:"⏰", time:"Dans la journée",   xp:10, cat:"journee", paliers:[4]},
-  {id:9,  titleFr:"Convenances du sommeil",        emoji:"🌙", time:"Avant de dormir",   xp:15, cat:"nuit",    paliers:[1,2,3,4]},
+  {id:1,  titleFr:"Prière de nuit",                emoji:"🌙", time:"Avant le Fajr",    xp:25, cat:"qiyam",   paliers:[5]},
+  {id:3,  titleFr:"Prière du matin",               emoji:"🌅", time:"À l'aube",          xp:15, cat:"aube",    paliers:[3,4,5]},
+  {id:2,  titleFr:"Séance après l'aube",           emoji:"🌄", time:"Après le Fajr",     xp:20, cat:"aube",    paliers:[2,3,4,5]},
+  {id:14, titleFr:"Invocation du lien spirituel",  emoji:"🔗", time:"À l'aube",          xp:15, cat:"aube",    paliers:[3,4,5]},
+  {id:5,  titleFr:"Lecture du Coran",              emoji:"📖", time:"À l'aube",          xp:25, cat:"aube",    paliers:[1,2,3,4,5]},
+  {id:6,  titleFr:"Sourates méritoires",           emoji:"✨", time:"À l'aube",          xp:20, cat:"aube",    paliers:[3,4,5]},
+  {id:4,  titleFr:"Prières complémentaires",       emoji:"🤲", time:"Dans la journée",   xp:15, cat:"journee", paliers:[4,5]},
+  {id:7,  titleFr:"Témoignage d'unicité — 3×15min",emoji:"💫", time:"Dans la journée",   xp:20, cat:"journee", paliers:[4,5]},
+  {id:8,  titleFr:"Bénédictions sur le Prophète ﷺ",emoji:"💚", time:"Toute la journée",  xp:20, cat:"journee", paliers:[2,3,4,5]},
+  {id:10, titleFr:"Obligations de l'étudiant",     emoji:"📚", time:"Dans la journée",   xp:15, cat:"journee", paliers:[5]},
+  {id:11, titleFr:"Cercle de foi",                 emoji:"🤝", time:"Dans la journée",   xp:20, cat:"journee", paliers:[5]},
+  {id:12, titleFr:"Acquisition du savoir",         emoji:"📗", time:"Dans la journée",   xp:15, cat:"journee", paliers:[5]},
+  {id:13, titleFr:"Garde du temps",                emoji:"⏰", time:"Dans la journée",   xp:10, cat:"journee", paliers:[5]},
+  {id:9,  titleFr:"Convenances du sommeil",        emoji:"🌙", time:"Avant de dormir",   xp:15, cat:"nuit",    paliers:[1,2,3,4,5]},
 ];
 const PALIER = {
-  1:{name:"Débutant",emoji:"🌱",desc:"Chaque grand voyage commence par un premier pas."},
-  2:{name:"En chemin",emoji:"🌿",desc:"Tu as de belles habitudes. Unifions-les."},
-  3:{name:"Intermédiaire",emoji:"🌳",desc:"Tu es déjà sur le chemin. Approfondissons."},
-  4:{name:"Bienfaisant",emoji:"🌟",desc:"Programme complet — la constance est ta force."},
+  1:{name:"L'Éveillé",   nameAr:"النَّاشِئ",    emoji:"🌑", desc:"Le premier pas est le plus courageux."},
+  2:{name:"Le Marcheur", nameAr:"السَّالِك",    emoji:"🌒", desc:"Tu as un rythme. Construisons dessus."},
+  3:{name:"Le Constant", nameAr:"المُدَاوِم",   emoji:"🌓", desc:"La fondation est solide. Approfondissons."},
+  4:{name:"Le Déterminé",nameAr:"المُتَزَوِّد", emoji:"🌔", desc:"La structure est en place. Allons plus loin."},
+  5:{name:"Le Vaillant", nameAr:"المُجَاهِد",   emoji:"🌕", desc:"Programme complet — la constance est ta bataille."},
 };
 const SECTIONS = {
   qiyam:   {label:"Dernier tiers de la nuit", emoji:"🌙"},
@@ -1169,6 +1186,29 @@ function selectCoranType(el,type){
       .map(([v,l,d,e])=>`<div class="ob-option" style="margin-bottom:8px" onclick="selectCoranGoal(this,'${v}')"><span class="ob-option-emoji">${e}</span><div class="ob-option-text"><div class="ob-option-label">${l}</div><div class="ob-option-desc">${d}</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>`).join("");
   }
 }
+function selectWitrType(el,val){
+  document.querySelectorAll("#witr-main-options .ob-option").forEach(o=>o.classList.remove("selected"));
+  el.classList.add("selected");
+  obAns.witr=val;delete obAns.witrWakeup;
+  const sub=document.getElementById("witr-sub");
+  const btn=document.getElementById("q3-next");
+  if(val===0){
+    btn.disabled=true;
+    sub.style.display="block";
+    sub.innerHTML=`<p class="ob-coran-sub-label">Tu te réveilles avant le Fajr ?</p>`+
+      [["sometimes","Oui, parfois","Il m'arrive de me lever la nuit","🌙"],["fajr_only","Je me lève juste pour le Fajr","Et je me rendors après","🌅"],["fajr_awake","Je fais le Fajr sans me recoucher","Déjà un bon ancrage","🌄"],["miss_fajr","Je ne me lève pas au Fajr","On commence par là ensemble","😴"]]
+      .map(([v,l,d,e])=>`<div class="ob-option" style="margin-bottom:8px" onclick="selectWitrWakeup(this,'${v}')"><span class="ob-option-emoji">${e}</span><div class="ob-option-text"><div class="ob-option-label">${l}</div><div class="ob-option-desc">${d}</div></div><div class="ob-radio"><div class="ob-radio-dot"></div></div></div>`).join("");
+  }else{
+    sub.style.display="none";sub.innerHTML="";
+    btn.disabled=false;
+  }
+}
+function selectWitrWakeup(el,val){
+  document.querySelectorAll("#witr-sub .ob-option").forEach(o=>o.classList.remove("selected"));
+  el.classList.add("selected");
+  obAns.witrWakeup=val;
+  document.getElementById("q3-next").disabled=false;
+}
 function selectCoranGoal(el,val){
   document.querySelectorAll("#coran-sub .ob-option").forEach(o=>o.classList.remove("selected"));
   el.classList.add("selected");
@@ -1227,7 +1267,43 @@ async function obNextFromNotifs(){
   obNext();
 }
 function checkNameInput(){const v=document.getElementById("name-input").value.trim();document.getElementById("name-next").disabled=!v;if(v)obAns.name=v;}
-function checkCityInput(){const v=document.getElementById("city-input")?.value.trim();if(v)obAns.city=v;else delete obAns.city;}
+let _cityTimer=null;
+function checkCityInput(){
+  const v=document.getElementById("city-input")?.value.trim();
+  if(v)obAns.city=v;else delete obAns.city;
+  clearTimeout(_cityTimer);
+  const box=document.getElementById("city-suggestions");
+  if(!v||v.length<2){box.innerHTML="";return;}
+  box.innerHTML=`<div class="city-sug-list"><div class="city-sug-none">Recherche…</div></div>`;
+  _cityTimer=setTimeout(()=>_fetchCities(v),450);
+}
+async function _fetchCities(q){
+  const box=document.getElementById("city-suggestions");
+  if(!box)return;
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&addressdetails=1&limit=6&accept-language=fr`);
+    const data=await r.json();
+    const seen=new Set();
+    const cities=data.filter(d=>{
+      if(!d.address)return false;
+      const name=d.address.city||d.address.town||d.address.village||d.address.municipality||d.name;
+      if(!name||seen.has(name))return false;
+      seen.add(name);return true;
+    });
+    if(!cities.length){box.innerHTML=`<div class="city-sug-list"><div class="city-sug-none">Aucune ville trouvée</div></div>`;return;}
+    box.innerHTML=`<div class="city-sug-list">${cities.slice(0,5).map(c=>{
+      const name=c.address.city||c.address.town||c.address.village||c.address.municipality||c.name;
+      const cc=(c.address.country_code||"").toUpperCase();
+      const display=cc?`${name}, ${cc}`:name;
+      return `<div class="city-sug-item" onclick="selectCitySug('${display.replace(/'/g,"\\'").replace(/\\/g,"\\\\")}')">📍 ${display}</div>`;
+    }).join("")}</div>`;
+  }catch{box.innerHTML=`<div class="city-sug-list"><div class="city-sug-none">Erreur de connexion</div></div>`;}
+}
+function selectCitySug(val){
+  document.getElementById("city-input").value=val;
+  obAns.city=val;
+  document.getElementById("city-suggestions").innerHTML="";
+}
 function selectOption(el){
   const parent=el.closest(".ob-options");
   const isMulti=parent.dataset.multi==="true";
@@ -1235,19 +1311,25 @@ function selectOption(el){
   const val=el.dataset.value;
   if(!isMulti){parent.querySelectorAll(".ob-option").forEach(o=>o.classList.remove("selected"));el.classList.add("selected");obAns[key]=isNaN(val)?val:Number(val);}
   else{el.classList.toggle("selected");if(!obAns[key])obAns[key]=[];if(el.classList.contains("selected")){if(!obAns[key].includes(val))obAns[key].push(val);}else{obAns[key]=obAns[key].filter(v=>v!==val);}}
-  const map={salat:"q1-next",quran:"q2-next",witr:"q3-next",type:"q4-next",goal:"q5-next"};
+  const map={salat:"q1-next",quran:"q2-next",witr:"q3-next",situations:"q4-next",goal:"q5-next"};
   const btnId=map[key];
   if(btnId){const btn=document.getElementById(btnId);if(btn)btn.disabled=isMulti?obAns[key].length===0:false;}
 }
 function calcPalier(p){
-  let s=0;
-  const sc=p.salatCount??p.salat??0;
-  if(sc>=5)s+=3;else if(sc>=3)s+=2;else if(sc>=1)s+=1;
-  if(p.quranType==="daily"){s+=p.quranGoal==="hizb"?2:1;}
-  else if(p.quranGoal&&p.quranGoal!=="try")s+=0;
-  else s+=Math.min(p.quran||0,2);
-  s+=Math.min(p.witr||0,2);
-  if(s>=7)return 3;if(s>=3)return 2;return 1;
+  const sc   = p.salatCount ?? p.salat ?? 0;
+  const witr = p.witrLevel  ?? p.witr  ?? 0;
+  const qt   = p.quranType  || "jamais";
+  // La salat plafonne le palier maximum
+  if(sc<=1) return 1;
+  if(sc<=3) return 2;
+  if(sc==4) return 3;
+  // sc==5 : coran + witr affinent le niveau 3/4/5
+  const quranScore = (qt==="quotidien"||qt==="daily") ? 2 : qt==="parfois" ? 1 : 0;
+  const witrScore  = Math.min(witr, 3);
+  const secondary  = quranScore + witrScore; // max 5
+  if(secondary>=4) return 5;
+  if(secondary>=2) return 4;
+  return 3;
 }
 // ─── Page résultat + personnalisation ───
 let obEditMode=false, obSelectedSteps=[];
@@ -1302,7 +1384,7 @@ function finishOnboarding(){
     salatCount:sc,prayers:obAns.prayers||[],
     quranType:obAns.quranType||"never",quranGoal:obAns.quranGoal||"try",
     salat:sc,quran:obAns.quranType==="daily"?2:(obAns.quranType==="sometimes"?1:0),
-    witr:obAns.witr??0,type:obAns.type||"worker",goal:obAns.goal||["taqwa"],city:obAns.city||""
+    witr:obAns.witr??0,witrLevel:obAns.witr??0,witrWakeup:obAns.witrWakeup||null,situations:obAns.situations||["worker"],type:(obAns.situations||["worker"])[0],goal:obAns.goal||["taqwa"],city:obAns.city||""
   };
   const palier=calcPalier(profile);
   const defaultIds=PROGRAM.filter(i=>i.paliers.includes(palier)).map(i=>i.id).sort((a,b)=>a-b);
