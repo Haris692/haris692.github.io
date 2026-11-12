@@ -137,6 +137,7 @@ h1{margin:0;font-family:var(--font-display);font-stretch:76%;font-weight:800;fon
 .rc{color:var(--classic)}
 .rs{color:var(--sup);font-weight:600}
 .rs.zero{color:var(--muted);font-weight:400;opacity:.65}
+.vals .note{font-family:var(--font-body);font-size:.8rem;font-style:italic;color:var(--muted);white-space:normal;text-align:right}
 .rs.neg,.fig.s .v.neg,.week-figs .s b.neg,.rt td.s.neg{color:var(--minus)}
 .meter .md{background:repeating-linear-gradient(135deg,var(--minus) 0 2px,transparent 2px 5px);opacity:.75}
 .meter{position:relative;height:5px;border-radius:3px;background:var(--sunk);overflow:hidden}
@@ -235,7 +236,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
     <div class="weeks" id="weeks"></div>
     <div class="foot">
       <p style="margin:0">Formats acceptés : <b>10h30</b> · <b>10:30</b> · <b>1030</b> · <b>10,5</b> (heures décimales). Case vide = pas travaillé. Entrée passe au jour suivant.</p>
-      <p style="margin:0">Un jour sous la base enlève la différence aux heures sup de la semaine, du mois et de l'année. Si le solde passe sous zéro, il s'affiche en négatif (heures à rattraper). Une case vide (repos, congé) n'enlève rien.</p>
+      <p style="margin:0">Un jour sous la base enlève la différence aux heures sup de la semaine, du mois et de l'année. Si le solde passe sous zéro, il s'affiche en négatif (heures à rattraper). Une case vide (repos, congé, récup) n'enlève rien, et le week-end n'enlève jamais rien : un samedi à 5h08 compte 5h08 classiques.</p>
       <p style="margin:0">Une semaine à cheval sur deux mois compte ses 7 jours dans son récap ; le récap du mois ne compte que les jours du mois.</p>
     </div>
   </section>
@@ -281,7 +282,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
     <div class="field">
       <label for="set-threshold">Base journalière</label>
       <input class="din" id="set-threshold" type="text" autocomplete="off" spellcheck="false" value="7h30">
-      <p>Au-delà de cette durée dans une journée, le reste compte en heures sup. En dessous, la différence est déduite des heures sup. S'applique à tous les jours.</p>
+      <p>Au-delà de cette durée dans une journée, le reste compte en heures sup. En dessous, la différence est déduite des heures sup (sauf le samedi et le dimanche).</p>
     </div>
     <div class="field">
       <span class="lab">Sauvegarde</span>
@@ -308,7 +309,19 @@ var CHIPS=['Janv','Févr','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct',
 var JOURS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
 var JOURS_C=['lun.','mar.','mer.','jeu.','ven.','sam.','dim.'];
 
-var state={threshold:450,days:{}};
+var state={threshold:450,days:{},seed:0};
+
+/* Heures déjà connues, intégrées une fois au carnet (une modification ou suppression ensuite est conservée). */
+var SEED_VERSION=1;
+var SEED={
+  '2025-09-01':'8h32','2025-09-02':'8h14','2025-09-03':'8h34','2025-09-04':'10h41','2025-09-05':'8h25',
+  '2025-09-08':'11h21','2025-09-09':'9h07','2025-09-10':'8h26','2025-09-11':'10h12','2025-09-12':'9h51',
+  '2025-09-15':'9h44','2025-09-16':'9h44','2025-09-17':'9h39','2025-09-18':'9h06','2025-09-19':'9h10',
+  '2025-09-22':'9h50','2025-09-23':'9h14','2025-09-24':'9h52','2025-09-25':'11h34','2025-09-26':'9h05','2025-09-27':'5h08',
+  '2025-09-29':'8h59','2025-09-30':'8h51','2025-10-01':'9h01','2025-10-02':'9h32'
+};
+/* Mentions affichées sur un jour sans heures */
+var NOTES={'2025-10-03':'Récup astreinte'};
 var storageOK=true;
 function $(s){return document.querySelector(s);}
 function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
@@ -324,6 +337,7 @@ function sanitize(days){
   return out;
 }
 function load(){
+  var storedSeed=0;
   try{
     var raw=localStorage.getItem(KEY);
     if(raw){
@@ -331,12 +345,24 @@ function load(){
       if(d&&typeof d==='object'){
         if(isFinite(d.threshold)&&d.threshold>0&&d.threshold<=1440)state.threshold=Math.round(d.threshold);
         state.days=sanitize(d.days);
+        storedSeed=+d.seed||0;
       }
     }
   }catch(e){storageOK=false;}
+  state.seed=storedSeed;
+  return applySeed();
+}
+/* Ajoute les heures connues sans écraser ce qui est déjà saisi. */
+function applySeed(){
+  if(state.seed>=SEED_VERSION)return false;
+  Object.keys(SEED).forEach(function(k){
+    if(!state.days[k]){var r=parseDur(SEED[k]);if(r&&r.min)state.days[k]=r.min;}
+  });
+  state.seed=SEED_VERSION;
+  return true;
 }
 function save(){
-  try{localStorage.setItem(KEY,JSON.stringify({v:1,threshold:state.threshold,days:state.days}));storageOK=true;}
+  try{localStorage.setItem(KEY,JSON.stringify({v:1,threshold:state.threshold,days:state.days,seed:state.seed}));storageOK=true;}
   catch(e){storageOK=false;}
   $('#storage-banner').hidden=storageOK;
 }
@@ -387,15 +413,21 @@ function fmt(min){var h=Math.floor(min/60),m=min%60;return h+'h'+pad(m);}
 function fmtSup(min){return '+'+fmt(min);}
 /* Solde signé : +1h30 ou −1h30 */
 function fmtBal(min){return min<0?('−'+fmt(-min)):('+'+fmt(min));}
-/* Par jour : c = classiques, s = heures sup, d = temps manquant sous la base */
-function split(min){var T=state.threshold;return {c:Math.min(min,T),s:Math.max(0,min-T),d:Math.max(0,T-min)};}
+/* Par jour : c = classiques, s = heures sup, d = temps manquant sous la base.
+   Le week-end n'est pas un jour dû : un samedi court n'enlève rien aux heures sup. */
+function isWeekend(k){var g=fromKey(k).getDay();return g===0||g===6;}
+function split(min,k){
+  var T=state.threshold,d=Math.max(0,T-min);
+  if(k&&isWeekend(k))d=0;
+  return {c:Math.min(min,T),s:Math.max(0,min-T),d:d};
+}
 /* Sur une période, le temps manquant des jours courts est déduit des heures sup.
    bal = sup − manquant (peut être négatif) ; classiques = total − sup nettes. */
 function sum(keys){
   var r={t:0,s:0,d:0,n:0,ns:0,nd:0};
   keys.forEach(function(k){
     var v=state.days[k];if(!v)return;
-    var p=split(v);r.t+=v;r.s+=p.s;r.d+=p.d;r.n++;if(p.s)r.ns++;if(p.d)r.nd++;
+    var p=split(v,k);r.t+=v;r.s+=p.s;r.d+=p.d;r.n++;if(p.s)r.ns++;if(p.d)r.nd++;
   });
   r.bal=r.s-r.d;
   r.c=r.t-Math.max(0,r.bal);
@@ -427,8 +459,9 @@ function paintRow(li){
   var mc=li.querySelector('.mc'),ms=li.querySelector('.ms'),md=li.querySelector('.md'),tick=li.querySelector('.tick');
   var scale=Math.max(720,state.threshold+240);
   tick.style.left=(state.threshold/scale*100)+'%';
+  var note=li.querySelector('.note');if(note)note.hidden=!!v;
   if(!v){rc.textContent='';rs.textContent='';mc.style.width='0';ms.style.width='0';md.style.width='0';return;}
-  var p=split(v);
+  var p=split(v,li.dataset.date);
   rc.textContent=fmt(p.c);
   rs.textContent=p.d?fmtBal(-p.d):fmtSup(p.s);
   rs.classList.toggle('zero',!p.s&&!p.d);
@@ -458,6 +491,7 @@ function dayRow(d,inMonth){
   var dr=el('div','dr'),vals=el('div','vals');
   var rc=el('span','rc'),rs=el('span','rs');
   rc.title='Heures classiques';rs.title='Heures sup';
+  if(NOTES[k])vals.appendChild(el('span','note',NOTES[k]));
   vals.appendChild(rc);vals.appendChild(rs);
   var meter=el('div','meter');meter.setAttribute('aria-hidden','true');
   meter.appendChild(el('i','mc'));meter.appendChild(el('i','ms'));meter.appendChild(el('i','md'));meter.appendChild(el('i','tick'));
@@ -694,7 +728,7 @@ $('#btn-csv').addEventListener('click',function(){
   var keys=Object.keys(state.days).sort();
   var lines=['Date;Jour;Travaillé;Classiques;Heures sup;Manquant;Travaillé (déc.);Classiques (déc.);Heures sup (déc.);Manquant (déc.)'];
   keys.forEach(function(k){
-    var d=fromKey(k),v=state.days[k],p=split(v);
+    var d=fromKey(k),v=state.days[k],p=split(v,k);
     lines.push([pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(),JOURS[isoDow(d)],hmm(v),hmm(p.c),hmm(p.s),hmm(p.d),dec(v),dec(p.c),dec(p.s),dec(p.d)].join(';'));
   });
   if(download('carnet-heures-'+todayKey+'.csv','﻿'+lines.join('\r\n'),'text/csv;charset=utf-8'))say('Fichier CSV exporté ('+keys.length+' jours).');
@@ -730,7 +764,7 @@ window.addEventListener('storage',function(e){if(e.key===KEY){load();render();}}
 window.addEventListener('resize',measureSticky);
 
 /* ---------- Démarrage ---------- */
-load();
+if(load())save();
 $('#storage-banner').hidden=storageOK;
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
 render();
