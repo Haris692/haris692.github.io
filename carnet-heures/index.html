@@ -141,6 +141,20 @@ h1{margin:0;font-family:var(--font-display);font-stretch:76%;font-weight:800;fon
 .rc.zero{color:var(--muted);opacity:.65}
 .din.is-mark{font-family:var(--font-body);font-weight:600;color:var(--classic)}
 .din::-webkit-calendar-picker-indicator{display:none!important}
+
+/* Export PDF */
+.head-row{display:flex;align-items:center;justify-content:space-between;gap:10px 12px;flex-wrap:wrap}
+.pdf-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 13px;font-size:.84rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.pdf-btn:hover{background:var(--sunk);border-color:var(--muted)}
+.pdf-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.pdf-btn.sm{padding:3px 10px 3px 8px;font-size:.76rem;gap:4px}
+.pdf-btn.sm svg{width:14px;height:14px}
+.pdf-btn[aria-busy="true"]{opacity:.55;cursor:progress}
+.wk-left{flex:1 1 100%;display:flex;align-items:baseline;gap:7px}
+.wk-left .pdf-btn{margin-left:auto;align-self:center}
+.wk-left .range{margin-left:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.88rem;font-weight:500;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgb(0 0 0 / .25)}
+.toast.bad{background:var(--danger);color:#fff}
 .day.marked .meter .mc{opacity:.45}
 .rs.neg,.fig.s .v.neg,.week-figs .s b.neg,.rt td.s.neg{color:var(--minus)}
 .meter .md{background:repeating-linear-gradient(135deg,var(--minus) 0 2px,transparent 2px 5px);opacity:.75}
@@ -193,6 +207,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
 .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .status{margin:0;font-size:.88rem;color:var(--classic);min-height:1.3em}
 .status.bad{color:var(--danger)}
+.ver{margin:0;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:.8rem}
 </style>
 </head>
 <body>
@@ -228,7 +243,13 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
 
   <section id="view-saisie" role="tabpanel" aria-labelledby="tab-saisie">
     <div class="head">
-      <h2 id="month-title">Novembre 2026</h2>
+      <div class="head-row">
+        <h2 id="month-title">Novembre 2026</h2>
+        <button class="pdf-btn" type="button" id="btn-pdf-month">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
+          <span>PDF du mois</span>
+        </button>
+      </div>
       <div class="figs" aria-live="polite">
         <div class="fig c"><span class="k">Classiques</span><span class="v" id="m-c">0h00</span></div>
         <div class="fig s"><span class="k">Heures sup</span><span class="v" id="m-s">0h00</span></div>
@@ -275,6 +296,8 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
   </section>
 </main>
 
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
 <datalist id="dl-marks">
   <option value="Récup astreinte"></option>
   <option value="Férié"></option>
@@ -306,6 +329,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
       <input type="file" id="file-import" accept=".json,application/json" hidden>
       <p class="status" id="status" role="status"></p>
     </div>
+    <p class="ver" id="app-version"></p>
   </div>
 </div>
 
@@ -313,6 +337,8 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
 (function(){
 'use strict';
 var KEY='carnet-heures-v1';
+/* Remplacé à chaque publication par build.sh (date de la version) */
+var BUILD='202611122219';
 var MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 var MOIS_C=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
 var CHIPS=['Janv','Févr','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct','Nov','Déc'];
@@ -561,9 +587,13 @@ function weekBlock(mon){
   var iw=isoWeek(mon);
   var art=el('article','week');art.dataset.mon=key(mon);
   var head=el('header','week-head');
-  var left=el('div');
+  var left=el('div','wk-left');
   left.appendChild(el('span','wk','S'+iw.week));
   left.appendChild(el('span','range',rangeLabel(mon)));
+  var pb=el('button','pdf-btn sm');pb.type='button';pb.dataset.pdfWeek=key(mon);
+  pb.setAttribute('aria-label','Exporter la semaine '+iw.week+' en PDF');
+  pb.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg><span>PDF</span>';
+  left.appendChild(pb);
   var figs=el('div','week-figs');
   [['c','wc',' classiques'],['s','ws',' sup'],['t','wt',' total']].forEach(function(x){
     var sp=el('span',x[0]);sp.appendChild(el('b',x[1],'0h00'));sp.appendChild(document.createTextNode(x[2]));figs.appendChild(sp);
@@ -728,6 +758,241 @@ weeksEl.addEventListener('keydown',function(e){
   if(next)next.focus();else e.target.blur();
 });
 
+/* ---------- Export PDF ---------- */
+var toastTimer=null;
+function toast(msg,bad){
+  var t=$('#toast');t.textContent=msg;t.classList.toggle('bad',!!bad);t.hidden=false;
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true;},bad?6000:3500);
+}
+function loadScript(src){
+  return new Promise(function(res,rej){
+    var s=document.createElement('script');s.src=src;s.async=true;
+    s.onload=res;s.onerror=function(){s.remove();rej(new Error(src));};
+    document.head.appendChild(s);
+  });
+}
+var pdfReady=null;
+/* Les bibliothèques PDF (jsPDF, AutoTable) sont hébergées avec l'appli et chargées au premier export. */
+function getPdf(){
+  if(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API.autoTable)return Promise.resolve(window.jspdf.jsPDF);
+  if(!pdfReady){
+    pdfReady=loadScript('vendor/jspdf-2.5.1.umd.min.js')
+      .then(function(){return loadScript('vendor/jspdf-autotable-3.8.2.min.js');})
+      .then(function(){return window.jspdf.jsPDF;});
+    pdfReady.catch(function(){pdfReady=null;});
+  }
+  return pdfReady;
+}
+
+/* Couleurs du PDF (impression : toujours la version claire) */
+var PC={ink:[20,32,44],muted:[90,104,117],line:[213,221,227],classic:[36,92,143],sup:[201,71,12],minus:[168,50,60],soft:[241,244,246],we:[247,249,250],mark:[221,233,245]};
+/* Les polices standard du PDF n'ont pas le signe « − » : on écrit un tiret simple. */
+function pBal(min){return (min<0?'-':'+')+fmt(Math.abs(min));}
+function pDay(d){return JOURS_C[isoDow(d)]+' '+pad(d.getDate())+'/'+pad(d.getMonth()+1);}
+function longDate(d){return (d.getDate()===1?'1er':d.getDate())+' '+MOIS[d.getMonth()]+' '+d.getFullYear();}
+
+/* Détail d'une période : totaux, plus ce qu'il faut pour écrire le calcul */
+function periodDetail(keys){
+  var r=sum(keys),T=state.threshold,sWeek=0,sWe=0;
+  keys.forEach(function(k){
+    var p=dayVal(k);if(!p||p.mark)return;
+    if(isWeekend(k))sWe+=p.s;else sWeek+=p.s;
+  });
+  r.sWeek=sWeek;r.sWe=sWe;r.worked=r.t-r.na*T;
+  return r;
+}
+
+function pdfPeriod(kind,ref){
+  var T=state.threshold,o={};
+  if(kind==='month'){
+    var y=ref.y,m=ref.m;
+    o.keys=monthKeys(y,m);
+    o.title=cap(MOIS[m])+' '+y;
+    o.sub='Du '+longDate(new Date(y,m,1))+' au '+longDate(new Date(y,m+1,0));
+    o.file='carnet-heures-'+y+'-'+pad(m+1)+'-'+MOIS[m].normalize('NFD').replace(/[̀-ͯ]/g,'')+'.pdf';
+    /* semaines limitées aux jours du mois, pour que le tableau colle au mois */
+    var groups={},order=[];
+    o.keys.forEach(function(k){var mk=key(mondayOf(fromKey(k)));if(!groups[mk]){groups[mk]=[];order.push(mk);}groups[mk].push(k);});
+    o.weeks=order.map(function(mk){
+      var ks=groups[mk],a=fromKey(ks[0]),b=fromKey(ks[ks.length-1]);
+      var lab=a.getDate()===b.getDate()?String(a.getDate()):(a.getDate()+' – '+b.getDate());
+      return {label:'S'+isoWeek(a).week,range:lab+' '+MOIS_C[b.getMonth()]+(ks.length<7?' (partielle)':''),keys:ks};
+    });
+  }else{
+    var mon=fromKey(ref),sun=addDays(mon,6),iw=isoWeek(mon);
+    o.keys=[];for(var i=0;i<7;i++)o.keys.push(key(addDays(mon,i)));
+    o.title='Semaine '+iw.week+' · '+iw.year;
+    o.sub='Du lundi '+longDate(mon)+' au dimanche '+longDate(sun);
+    o.file='carnet-heures-'+iw.year+'-S'+pad(iw.week)+'.pdf';
+  }
+  return o;
+}
+
+function buildPdf(jsPDF,kind,ref){
+  var o=pdfPeriod(kind,ref),r=periodDetail(o.keys),T=state.threshold;
+  var doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  var W=210,M=14,y=16,now=new Date();
+  doc.setProperties({title:"Carnet d'heures – "+o.title,subject:'Heures travaillées et heures sup',creator:"Carnet d'heures"});
+
+  /* En-tête */
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor.apply(doc,PC.muted);
+  doc.text("CARNET D'HEURES",M,y,{charSpace:.4});
+  doc.setFont('helvetica','normal');
+  doc.text('Édité le '+pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear(),W-M,y,{align:'right'});
+  y+=10;
+  doc.setFont('helvetica','bold');doc.setFontSize(21);doc.setTextColor.apply(doc,PC.ink);
+  doc.text(o.title,M,y);
+  y+=6.5;
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor.apply(doc,PC.muted);
+  doc.text(o.sub+'  ·  base '+fmt(T)+' par jour',M,y);
+  y+=5;
+  doc.setDrawColor.apply(doc,PC.line);doc.setLineWidth(.3);doc.line(M,y,W-M,y);
+  y+=6;
+
+  /* Récap : 4 cases */
+  var cw=(W-2*M)/4,boxH=19;
+  var jours=r.n+(r.n>1?' travaillés':' travaillé');
+  var cells=[
+    ['HEURES CLASSIQUES',fmt(r.c),PC.classic,''],
+    ['HEURES SUP',pBal(r.bal),r.bal<0?PC.minus:PC.sup,r.bal<0?'à rattraper':''],
+    ['TOTAL',fmt(r.t),PC.ink,''],
+    ['JOURS',String(r.n),PC.ink,jours.replace(/^\d+ /,'')+(r.na?' + '+r.na+' à '+fmt(T):'')]
+  ];
+  doc.setFillColor.apply(doc,PC.soft);doc.roundedRect(M,y,W-2*M,boxH,2,2,'F');
+  cells.forEach(function(c,i){
+    var x=M+i*cw+4.5;
+    if(i){doc.setDrawColor.apply(doc,PC.line);doc.line(M+i*cw,y+3,M+i*cw,y+boxH-3);}
+    doc.setFont('helvetica','bold');doc.setFontSize(6.8);doc.setTextColor.apply(doc,PC.muted);
+    doc.text(c[0],x,y+5.6,{charSpace:.3});
+    doc.setFontSize(15.5);doc.setTextColor.apply(doc,c[2]);
+    doc.text(c[1],x,y+12.8);
+    if(c[3]){doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor.apply(doc,PC.muted);doc.text(c[3],x,y+16.6);}
+  });
+  y+=boxH+8;
+
+  /* Le calcul, ligne par ligne */
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,PC.ink);
+  doc.text('Calcul',M,y);y+=5.5;
+  var lines=[];
+  var supLine=r.sWe
+    ?('Heures sup faites : '+fmt(r.sWeek)+' en semaine (au-delà de '+fmt(T)+' par jour) + '+fmt(r.sWe)+' le week-end (tout en sup) = '+pBal(r.s))
+    :('Heures sup faites : '+pBal(r.sWeek)+' en semaine (au-delà de '+fmt(T)+' par jour)');
+  lines.push(['1',supLine]);
+  lines.push(['2','Temps manquant, jours de semaine sous '+fmt(T)+' : '+(r.d?'-'+fmt(r.d)+' sur '+r.nd+(r.nd>1?' jours':' jour'):'aucun')]);
+  lines.push(['3','Solde heures sup = '+pBal(r.s)+' - '+fmt(r.d)+' = '+pBal(r.bal)+(r.bal<0?' (heures à rattraper)':'')]);
+  lines.push(['4',r.na?('Total compté = '+fmt(r.worked)+' travaillées + '+r.na+' × '+fmt(T)+' (récup, férié, arrêt) = '+fmt(r.t)):('Total travaillé = '+fmt(r.t))]);
+  lines.push(['5',r.bal>0?('Heures classiques = total - solde = '+fmt(r.t)+' - '+fmt(r.bal)+' = '+fmt(r.c)):('Heures classiques = total = '+fmt(r.c)+(r.bal<0?' (le solde négatif ne retire rien aux classiques)':''))]);
+  doc.setFontSize(9.3);
+  lines.forEach(function(l){
+    doc.setFont('helvetica','bold');doc.setTextColor.apply(doc,PC.muted);doc.text(l[0]+'.',M+1,y);
+    doc.setFont('helvetica','normal');doc.setTextColor.apply(doc,PC.ink);
+    var wrapped=doc.splitTextToSize(l[1],W-2*M-7);
+    doc.text(wrapped,M+6,y);y+=4.9*wrapped.length;
+  });
+  y+=3;
+
+  var tableBase={
+    theme:'plain',margin:{left:M,right:M,bottom:18},
+    styles:{font:'helvetica',fontSize:8.6,cellPadding:{top:1.55,bottom:1.55,left:2,right:2},textColor:PC.ink,lineColor:PC.line,lineWidth:{bottom:.15}},
+    headStyles:{fontStyle:'bold',fontSize:7,textColor:PC.muted,fillColor:false,lineWidth:{bottom:.4},lineColor:PC.ink}
+  };
+  function heading(txt){
+    if(y>255){doc.addPage();y=18;}
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,PC.ink);doc.text(txt,M,y);y+=2.5;
+  }
+  function colorCells(data,map){
+    if(data.section!=='body')return;
+    var c=map[data.column.index];if(c&&data.cell.raw!=='')data.cell.styles.textColor=c(data);
+  }
+
+  /* Par semaine (mois seulement) */
+  if(kind==='month'){
+    heading('Par semaine');
+    var wrows=o.weeks.map(function(w){
+      var s=sum(w.keys);
+      return [w.label,w.range,String(s.n+s.na),s.t?fmt(s.c):'',s.t?pBal(s.bal):'',s.t?fmt(s.t):''];
+    });
+    doc.autoTable(Object.assign({},tableBase,{
+      startY:y,
+      head:[['SEMAINE','JOURS DU MOIS','JOURS','CLASSIQUES','HEURES SUP','TOTAL']],
+      body:wrows,
+      foot:[['Mois','',String(r.n+r.na),fmt(r.c),pBal(r.bal),fmt(r.t)]],
+      footStyles:{fontStyle:'bold',fillColor:PC.soft,textColor:PC.ink,lineWidth:0},
+      columnStyles:{0:{fontStyle:'bold',cellWidth:18},2:{halign:'right',cellWidth:16},3:{halign:'right',cellWidth:28},4:{halign:'right',cellWidth:26},5:{halign:'right',cellWidth:24}},
+      didParseCell:function(data){
+        if(data.section==='head'&&data.column.index>=2)data.cell.styles.halign='right';
+        if(data.section==='foot'&&data.column.index>=2)data.cell.styles.halign='right';
+        colorCells(data,{3:function(){return PC.classic;},4:function(d){return String(d.cell.raw).charAt(0)==='-'?PC.minus:PC.sup;}});
+        if(data.section==='foot'){
+          if(data.column.index===3)data.cell.styles.textColor=PC.classic;
+          if(data.column.index===4)data.cell.styles.textColor=r.bal<0?PC.minus:PC.sup;
+        }
+      }
+    }));
+    y=doc.lastAutoTable.finalY+9;
+  }
+
+  /* Détail jour par jour */
+  heading('Détail jour par jour');
+  var drows=o.keys.map(function(k){
+    var d=fromKey(k),p=dayVal(k),we=isWeekend(k);
+    if(!p)return {k:k,cells:[pDay(d),'-','','','','']};
+    if(p.mark)return {k:k,mark:1,cells:[pDay(d),MARKS[p.mark].long,fmt(p.c),'','','Compté '+fmt(T)]};
+    var rem=we?'Week-end : tout en sup':(p.d?'Déduit des sup':'');
+    return {k:k,cells:[pDay(d),fmt(p.t),fmt(p.c),p.s?pBal(p.s):'+0h00',p.d?'-'+fmt(p.d):'',rem]};
+  });
+  doc.autoTable(Object.assign({},tableBase,{
+    startY:y,
+    head:[['JOUR','SAISI','CLASSIQUES','HEURES SUP','MANQUANT','REMARQUE']],
+    body:drows.map(function(x){return x.cells;}),
+    columnStyles:{0:{cellWidth:24},1:{cellWidth:34},2:{halign:'right',cellWidth:24},3:{halign:'right',cellWidth:24},4:{halign:'right',cellWidth:22},5:{textColor:PC.muted,fontSize:7.8}},
+    didParseCell:function(data){
+      if(data.section==='head'&&data.column.index>=2&&data.column.index<=4)data.cell.styles.halign='right';
+      if(data.section!=='body')return;
+      var row=drows[data.row.index],we=isWeekend(row.k),empty=row.cells[1]==='-';
+      if(we)data.cell.styles.fillColor=PC.we;
+      if(row.mark&&data.column.index<=1)data.cell.styles.fontStyle='bold';
+      if(row.mark&&data.column.index===1)data.cell.styles.textColor=PC.classic;
+      if(empty&&data.column.index<=1)data.cell.styles.textColor=PC.muted;
+      if(data.column.index===0&&!empty&&!row.mark)data.cell.styles.fontStyle='bold';
+      if(data.column.index===2&&data.cell.raw)data.cell.styles.textColor=PC.classic;
+      if(data.column.index===3&&data.cell.raw)data.cell.styles.textColor=data.cell.raw==='+0h00'?PC.muted:PC.sup;
+      if(data.column.index===4&&data.cell.raw)data.cell.styles.textColor=PC.minus;
+      /* trait plus marqué entre deux semaines */
+      if(kind==='month'&&fromKey(row.k).getDay()===1&&data.row.index>0)data.cell.styles.lineWidth={top:.45,bottom:.15};
+    }
+  }));
+
+  /* Pied de page : règles + numéro de page */
+  var rules='Règles : base '+fmt(T)+' par jour. En semaine, au-delà = heures sup, en dessous = déduit des heures sup. '+
+    'Samedi et dimanche = tout en heures sup. Récup astreinte, férié, arrêt maladie = '+fmt(T)+' classiques.';
+  var n=doc.getNumberOfPages();
+  for(var i=1;i<=n;i++){
+    doc.setPage(i);
+    doc.setDrawColor.apply(doc,PC.line);doc.setLineWidth(.3);doc.line(M,283,W-M,283);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor.apply(doc,PC.muted);
+    doc.text(doc.splitTextToSize(rules,W-2*M-18),M,287);
+    doc.text(i+' / '+n,W-M,287,{align:'right'});
+  }
+  return {doc:doc,file:o.file};
+}
+
+function exportPdf(kind,ref,btn){
+  if(btn){if(btn.getAttribute('aria-busy')==='true')return;btn.setAttribute('aria-busy','true');}
+  getPdf().then(function(jsPDF){
+    var out=buildPdf(jsPDF,kind,ref);
+    out.doc.save(out.file);
+    toast('PDF enregistré : '+out.file);
+  }).catch(function(e){
+    console.error(e);
+    toast(pdfReady===null?"L'outil PDF n'a pas pu se charger. Vérifie ta connexion et réessaie.":'La création du PDF a échoué.',true);
+  }).then(function(){if(btn)btn.removeAttribute('aria-busy');});
+}
+$('#btn-pdf-month').addEventListener('click',function(){exportPdf('month',{y:view.year,m:view.month},this);});
+weeksEl.addEventListener('click',function(e){
+  var b=e.target.closest('[data-pdf-week]');if(b)exportPdf('week',b.dataset.pdfWeek,b);
+});
+
 /* ---------- Navigation ---------- */
 $('#tab-saisie').addEventListener('click',function(){setTab('saisie');});
 $('#tab-recap').addEventListener('click',function(){setTab('recap');});
@@ -819,6 +1084,34 @@ $('#file-import').addEventListener('change',function(){
   rd.readAsText(f);
 });
 
+/* ---------- Mise à jour automatique ----------
+   L'appli posée sur l'écran d'accueil peut rester en mémoire ou servir une copie en cache.
+   À chaque ouverture et à chaque retour au premier plan, on lit version.json sans cache ;
+   si une version plus récente est en ligne, on recharge la page à une adresse neuve (?v=…)
+   pour contourner le cache. Une seule tentative par version, pour ne jamais boucler. */
+var lastCheck=0;
+function checkUpdate(){
+  if(BUILD.charAt(0)==='_'||location.protocol==='file:'||!window.fetch)return;
+  var now=Date.now();if(now-lastCheck<15000)return;lastCheck=now;
+  fetch('version.json?t='+now,{cache:'no-store'})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(v){
+      if(!v||!v.build||v.build===BUILD)return;
+      var tried='';try{tried=sessionStorage.getItem('carnet-heures-maj')||'';}catch(e){}
+      if(tried===v.build)return;
+      try{sessionStorage.setItem('carnet-heures-maj',v.build);}catch(e){}
+      location.replace(location.pathname+'?v='+encodeURIComponent(v.build)+location.hash);
+    })
+    .catch(function(){});
+}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkUpdate();});
+window.addEventListener('pageshow',function(e){if(e.persisted)checkUpdate();});
+function versionLabel(){
+  var b=BUILD;if(!/^\d{12}$/.test(b))return 'Version de test';
+  return 'Version du '+b.slice(6,8)+'/'+b.slice(4,6)+'/'+b.slice(0,4)+' à '+b.slice(8,10)+'h'+b.slice(10,12);
+}
+$('#app-version').textContent=versionLabel()+" · se met à jour toute seule à l'ouverture";
+
 /* Autre onglet ouvert sur la même page */
 window.addEventListener('storage',function(e){if(e.key===KEY){load();render();}});
 window.addEventListener('resize',measureSticky);
@@ -829,6 +1122,7 @@ $('#storage-banner').hidden=storageOK;
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
 render();
 measureSticky();
+checkUpdate();
 var t=document.querySelector('.day.today');
 if(t){var r=t.getBoundingClientRect();if(r.bottom>window.innerHeight-20)t.scrollIntoView({block:'center'});}
 })();
