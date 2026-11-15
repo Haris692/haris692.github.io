@@ -137,7 +137,8 @@ h1{margin:0;font-family:var(--font-display);font-stretch:76%;font-weight:800;fon
 .rc{color:var(--classic)}
 .rs{color:var(--sup);font-weight:600}
 .rs.zero{color:var(--muted);font-weight:400;opacity:.65}
-.vals .note{font-family:var(--font-body);font-size:.8rem;font-style:italic;color:var(--muted);white-space:normal;text-align:right}
+.vals{flex-wrap:wrap;row-gap:1px}
+.vals .note{flex:1 1 100%;font-family:var(--font-body);font-size:.8rem;font-style:italic;color:var(--muted);white-space:normal;text-align:right}
 .rc.zero{color:var(--muted);opacity:.65}
 .din.is-mark{font-family:var(--font-body);font-weight:600;color:var(--classic)}
 .din::-webkit-calendar-picker-indicator{display:none!important}
@@ -256,12 +257,12 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
         <div class="fig"><span class="k">Total</span><span class="v" id="m-t">0h00</span></div>
       </div>
       <p class="subnote" id="m-note"></p>
-      <p class="empty-hint" id="empty-hint" hidden>Tape tes heures dans la case du jour. Par exemple <b>10h30</b> donne <b class="c">7h30</b> classiques et <b class="s">+3h00</b> d'heures sup ; un jour à <b>6h00</b> enlève 1h30 aux heures sup. Tape <b>récup</b>, <b>férié</b> ou <b>maladie</b> pour un jour compté 7h30.</p>
+      <p class="empty-hint" id="empty-hint" hidden>Tape tes heures dans la case du jour. Par exemple <b>10h30</b> donne <b class="c">7h30</b> classiques et <b class="s">+3h00</b> d'heures sup ; un jour à <b>6h00</b> enlève 1h30 aux heures sup. Tape <b>cp</b>, <b>récup</b>, <b>férié</b> ou <b>maladie</b> pour un jour compté 7h30, et <b>férié 4h</b> pour un férié travaillé.</p>
     </div>
     <div class="weeks" id="weeks"></div>
     <div class="foot">
-      <p style="margin:0">Formats acceptés : <b>10h30</b> · <b>10:30</b> · <b>1030</b> · <b>10,5</b> (heures décimales), ou <b>récup</b> · <b>férié</b> · <b>maladie</b> (accents facultatifs). Case vide = pas travaillé. Entrée passe au jour suivant.</p>
-      <p style="margin:0">En semaine, un jour sous la base enlève la différence aux heures sup de la semaine, du mois et de l'année ; si le solde passe sous zéro, il s'affiche en négatif (heures à rattraper). Le samedi et le dimanche, toutes les heures sont des heures sup. Récup astreinte, férié et arrêt maladie comptent 7h30 classiques. Une case vide n'enlève rien.</p>
+      <p style="margin:0">Formats acceptés : <b>10h30</b> · <b>10:30</b> · <b>1030</b> · <b>10,5</b> (heures décimales), ou <b>cp</b> · <b>récup</b> · <b>férié</b> · <b>maladie</b> (accents facultatifs), et <b>férié 4h</b> pour un férié travaillé. Case vide = pas travaillé. Entrée passe au jour suivant.</p>
+      <p style="margin:0">En semaine, un jour sous la base enlève la différence aux heures sup de la semaine, du mois et de l'année ; si le solde passe sous zéro, il s'affiche en négatif (heures à rattraper). Le samedi et le dimanche, toutes les heures sont des heures sup. CP, récup astreinte, arrêt maladie et férié comptent 7h30 classiques, sans bonus ni malus. Un férié travaillé compte 7h30, plus toutes les heures travaillées en heures sup. Une case vide n'enlève rien.</p>
       <p style="margin:0">Une semaine à cheval sur deux mois compte ses 7 jours dans son récap ; le récap du mois ne compte que les jours du mois.</p>
     </div>
   </section>
@@ -299,6 +300,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <datalist id="dl-marks">
+  <option value="CP"></option>
   <option value="Récup astreinte"></option>
   <option value="Férié"></option>
   <option value="Arrêt maladie"></option>
@@ -315,7 +317,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
     <div class="field">
       <label for="set-threshold">Base journalière</label>
       <input class="din" id="set-threshold" type="text" autocomplete="off" spellcheck="false" value="7h30">
-      <p>En semaine, au-delà de cette durée le reste compte en heures sup, et en dessous la différence est déduite des heures sup. Le week-end, tout est en heures sup. Récup astreinte, férié et arrêt maladie comptent cette durée en heures classiques.</p>
+      <p>En semaine, au-delà de cette durée le reste compte en heures sup, et en dessous la différence est déduite des heures sup. Le week-end, tout est en heures sup. CP, récup astreinte, arrêt maladie et férié comptent cette durée en heures classiques ; un férié travaillé ajoute toutes ses heures en sup.</p>
     </div>
     <div class="field">
       <span class="lab">Sauvegarde</span>
@@ -338,7 +340,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.9rem}
 'use strict';
 var KEY='carnet-heures-v1';
 /* Remplacé à chaque publication par build.sh (date de la version) */
-var BUILD='202611122219';
+var BUILD='202611152111';
 var MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 var MOIS_C=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
 var CHIPS=['Janv','Févr','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct','Nov','Déc'];
@@ -347,8 +349,10 @@ var JOURS_C=['lun.','mar.','mer.','jeu.','ven.','sam.','dim.'];
 
 var state={threshold:450,days:{},marks:{},seed:0};
 
-/* Jours sans heures saisies, comptés à la base (7h30 classiques) */
+/* Jours comptés à la base (7h30 classiques), sans bonus ni malus.
+   Un férié peut aussi porter des heures travaillées : elles passent toutes en heures sup, en plus des 7h30. */
 var MARKS={
+  conge:{court:'CP',long:'Congé (CP)'},
   recup:{court:'Récup',long:'Récup astreinte'},
   ferie:{court:'Férié',long:'Férié'},
   maladie:{court:'Maladie',long:'Arrêt maladie'}
@@ -473,11 +477,32 @@ function parseDur(raw){
 function parseMark(raw){
   var s=String(raw).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
   if(!s)return null;
+  if(s==='cp'||s==='ca'||s.indexOf('cp ')===0||s.indexOf('conge')===0||s.indexOf('vacance')===0)return 'conge';
   if(s.indexOf('recup')===0||s.indexOf('astreinte')===0||s==='ra')return 'recup';
   if(s.indexOf('ferie')===0||s==='jf')return 'ferie';
   if(s.indexOf('arret')===0||s.indexOf('maladie')===0||s==='am')return 'maladie';
   return null;
 }
+/* Une saisie complète : heures, jour marqué, ou férié travaillé (« férié 4h », « férié + 4h », « 4h férié »).
+   Renvoie {empty}, {min}, {mark}, {mark:'ferie',min} ou null. */
+function parseEntry(raw){
+  var r=parseDur(raw);if(r)return r;
+  var s=String(raw).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+  var m=s.match(/^(?:ferie|jf)\s*(?:travaille\s*)?\+?\s*(\d.*)$/)||s.match(/^(\d.*?)\s*\+?\s*(?:ferie|jf)$/);
+  if(m){
+    var h=parseDur(m[1]);if(!h||h.empty)return null;
+    return h.min?{mark:'ferie',min:h.min}:{mark:'ferie'};
+  }
+  var mk=parseMark(s);
+  return mk?{mark:mk}:null;
+}
+/* Texte affiché dans la case d'un jour */
+function entryLabel(k){
+  var mk=state.marks[k],v=state.days[k];
+  if(mk)return MARKS[mk].court+(mk==='ferie'&&v?' '+fmt(v):'');
+  return v?fmt(v):'';
+}
+function markLong(p){return p.mark==='ferie'&&p.x?'Férié travaillé':MARKS[p.mark].long;}
 function fmt(min){var h=Math.floor(min/60),m=min%60;return h+'h'+pad(m);}
 function fmtSup(min){return '+'+fmt(min);}
 /* Solde signé : +1h30 ou −1h30 */
@@ -490,11 +515,12 @@ function split(min,k){
   if(k&&isWeekend(k))return {c:0,s:min,d:0};
   return {c:Math.min(min,T),s:Math.max(0,min-T),d:Math.max(0,T-min)};
 }
-/* Valeur d'un jour : heures saisies, ou jour marqué (récup, férié, arrêt) compté à la base en classiques. */
+/* Valeur d'un jour : heures saisies, ou jour marqué (CP, récup, férié, arrêt) compté à la base en classiques.
+   Férié travaillé : les 7h30 du férié en classiques + toutes les heures travaillées en sup (x). */
 function dayVal(k){
-  var mk=state.marks[k],T=state.threshold;
-  if(mk)return {t:T,c:T,s:0,d:0,mark:mk};
-  var v=state.days[k];if(!v)return null;
+  var mk=state.marks[k],T=state.threshold,v=state.days[k]||0;
+  if(mk){var x=mk==='ferie'?v:0;return {t:T+x,c:T,s:x,d:0,mark:mk,x:x};}
+  if(!v)return null;
   var p=split(v,k);p.t=v;return p;
 }
 /* Sur une période, le temps manquant des jours courts est déduit des heures sup.
@@ -505,7 +531,7 @@ function sum(keys){
     if(seen[k])return;seen[k]=1;
     var p=dayVal(k);if(!p)return;
     r.t+=p.t;r.s+=p.s;r.d+=p.d;
-    if(p.mark){r.na++;return;}
+    if(p.mark){r.na++;if(p.s)r.ns++;return;}
     r.n++;if(p.s)r.ns++;if(p.d)r.nd++;
   });
   r.bal=r.s-r.d;
@@ -539,12 +565,12 @@ function paintRow(li){
   var scale=Math.max(720,state.threshold+240);
   tick.style.left=(state.threshold/scale*100)+'%';
   var mark=p&&p.mark;
-  note.textContent=mark?MARKS[mark].long:'';note.hidden=!mark;
+  note.textContent=mark?markLong(p):'';note.hidden=!mark;
   inp.classList.toggle('is-mark',!!mark);li.classList.toggle('marked',!!mark);
   if(!p){rc.textContent='';rs.textContent='';mc.style.width='0';ms.style.width='0';md.style.width='0';return;}
   rc.textContent=fmt(p.c);
   rc.classList.toggle('zero',!p.c);
-  rs.textContent=mark?'':(p.d?fmtBal(-p.d):fmtSup(p.s));
+  rs.textContent=mark?(p.s?fmtSup(p.s):''):(p.d?fmtBal(-p.d):fmtSup(p.s));
   rs.classList.toggle('zero',!p.s&&!p.d);
   rs.classList.toggle('neg',!!p.d);
   rs.title=p.d?'Temps manquant, déduit des heures sup':'Heures sup';
@@ -568,8 +594,7 @@ function dayRow(d,inMonth){
   inp.id=id;inp.type='text';inp.autocomplete='off';inp.spellcheck=false;inp.placeholder='—';
   inp.setAttribute('autocapitalize','off');inp.setAttribute('enterkeyhint','next');inp.setAttribute('list','dl-marks');
   inp.setAttribute('aria-label','Heures travaillées le '+JOURS[dow]+' '+d.getDate()+' '+MOIS[d.getMonth()]);
-  if(state.marks[k])inp.value=MARKS[state.marks[k]].court;
-  else if(state.days[k])inp.value=fmt(state.days[k]);
+  inp.value=entryLabel(k);
   var dr=el('div','dr'),vals=el('div','vals');
   var rc=el('span','rc'),rs=el('span','rs'),note=el('span','note');note.hidden=true;
   rc.title='Heures classiques';rs.title='Heures sup';
@@ -577,7 +602,7 @@ function dayRow(d,inMonth){
   var meter=el('div','meter');meter.setAttribute('aria-hidden','true');
   meter.appendChild(el('i','mc'));meter.appendChild(el('i','ms'));meter.appendChild(el('i','md'));meter.appendChild(el('i','tick'));
   dr.appendChild(vals);dr.appendChild(meter);
-  var err=el('p','err','Non reconnu. Exemples : 10h30, 10:30, 10,5, récup, férié, maladie');err.hidden=true;
+  var err=el('p','err','Non reconnu. Exemples : 10h30, 10,5, cp, récup, férié, férié 4h, maladie');err.hidden=true;
   li.appendChild(lab);li.appendChild(inp);li.appendChild(dr);li.appendChild(err);
   paintRow(li);
   return li;
@@ -733,16 +758,16 @@ function scrollToWeek(mk){
 /* ---------- Saisie ---------- */
 function commit(inp,normalize){
   var li=inp.closest('.day'),k=li.dataset.date,err=li.querySelector('.err');
-  var r=parseDur(inp.value),mk=r===null?parseMark(inp.value):null;
+  var e=parseEntry(inp.value);
   delete state.days[k];delete state.marks[k];
-  if(r===null&&!mk){
+  if(!e){
     /* Pendant la frappe (« réc… ») on n'affiche pas d'erreur ; seulement à la validation. */
     if(normalize){inp.setAttribute('aria-invalid','true');err.hidden=false;}
   }else{
     inp.removeAttribute('aria-invalid');err.hidden=true;
-    if(mk)state.marks[k]=mk;
-    else if(!r.empty&&r.min)state.days[k]=r.min;
-    if(normalize)inp.value=state.marks[k]?MARKS[state.marks[k]].court:(state.days[k]?fmt(state.days[k]):'');
+    if(e.mark)state.marks[k]=e.mark;
+    if(e.min)state.days[k]=e.min;
+    if(normalize)inp.value=entryLabel(k);
   }
   save();paintRow(li);updateTotals();
 }
@@ -793,12 +818,12 @@ function longDate(d){return (d.getDate()===1?'1er':d.getDate())+' '+MOIS[d.getMo
 
 /* Détail d'une période : totaux, plus ce qu'il faut pour écrire le calcul */
 function periodDetail(keys){
-  var r=sum(keys),T=state.threshold,sWeek=0,sWe=0;
+  var r=sum(keys),T=state.threshold,sWeek=0,sWe=0,sFer=0;
   keys.forEach(function(k){
-    var p=dayVal(k);if(!p||p.mark)return;
-    if(isWeekend(k))sWe+=p.s;else sWeek+=p.s;
+    var p=dayVal(k);if(!p||!p.s)return;
+    if(p.mark)sFer+=p.s;else if(isWeekend(k))sWe+=p.s;else sWeek+=p.s;
   });
-  r.sWeek=sWeek;r.sWe=sWe;r.worked=r.t-r.na*T;
+  r.sWeek=sWeek;r.sWe=sWe;r.sFer=sFer;r.worked=r.t-r.na*T;
   return r;
 }
 
@@ -874,13 +899,16 @@ function buildPdf(jsPDF,kind,ref){
   doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,PC.ink);
   doc.text('Calcul',M,y);y+=5.5;
   var lines=[];
-  var supLine=r.sWe
-    ?('Heures sup faites : '+fmt(r.sWeek)+' en semaine (au-delà de '+fmt(T)+' par jour) + '+fmt(r.sWe)+' le week-end (tout en sup) = '+pBal(r.s))
+  var parts=[fmt(r.sWeek)+' en semaine (au-delà de '+fmt(T)+' par jour)'];
+  if(r.sWe)parts.push(fmt(r.sWe)+' le week-end (tout en sup)');
+  if(r.sFer)parts.push(fmt(r.sFer)+' les jours fériés travaillés (tout en sup)');
+  var supLine=parts.length>1
+    ?('Heures sup faites : '+parts.join(' + ')+' = '+pBal(r.s))
     :('Heures sup faites : '+pBal(r.sWeek)+' en semaine (au-delà de '+fmt(T)+' par jour)');
   lines.push(['1',supLine]);
   lines.push(['2','Temps manquant, jours de semaine sous '+fmt(T)+' : '+(r.d?'-'+fmt(r.d)+' sur '+r.nd+(r.nd>1?' jours':' jour'):'aucun')]);
   lines.push(['3','Solde heures sup = '+pBal(r.s)+' - '+fmt(r.d)+' = '+pBal(r.bal)+(r.bal<0?' (heures à rattraper)':'')]);
-  lines.push(['4',r.na?('Total compté = '+fmt(r.worked)+' travaillées + '+r.na+' × '+fmt(T)+' (récup, férié, arrêt) = '+fmt(r.t)):('Total travaillé = '+fmt(r.t))]);
+  lines.push(['4',r.na?('Total compté = '+fmt(r.worked)+' travaillées + '+r.na+' × '+fmt(T)+' (CP, récup, férié, arrêt) = '+fmt(r.t)):('Total travaillé = '+fmt(r.t))]);
   lines.push(['5',r.bal>0?('Heures classiques = total - solde = '+fmt(r.t)+' - '+fmt(r.bal)+' = '+fmt(r.c)):('Heures classiques = total = '+fmt(r.c)+(r.bal<0?' (le solde négatif ne retire rien aux classiques)':''))]);
   doc.setFontSize(9.3);
   lines.forEach(function(l){
@@ -937,6 +965,7 @@ function buildPdf(jsPDF,kind,ref){
   var drows=o.keys.map(function(k){
     var d=fromKey(k),p=dayVal(k),we=isWeekend(k);
     if(!p)return {k:k,cells:[pDay(d),'-','','','','']};
+    if(p.mark&&p.x)return {k:k,mark:1,cells:[pDay(d),'Férié + '+fmt(p.x),fmt(p.c),pBal(p.s),'','Férié travaillé : '+fmt(T)+' + tout en sup']};
     if(p.mark)return {k:k,mark:1,cells:[pDay(d),MARKS[p.mark].long,fmt(p.c),'','','Compté '+fmt(T)]};
     var rem=we?'Week-end : tout en sup':(p.d?'Déduit des sup':'');
     return {k:k,cells:[pDay(d),fmt(p.t),fmt(p.c),p.s?pBal(p.s):'+0h00',p.d?'-'+fmt(p.d):'',rem]};
@@ -965,7 +994,8 @@ function buildPdf(jsPDF,kind,ref){
 
   /* Pied de page : règles + numéro de page */
   var rules='Règles : base '+fmt(T)+' par jour. En semaine, au-delà = heures sup, en dessous = déduit des heures sup. '+
-    'Samedi et dimanche = tout en heures sup. Récup astreinte, férié, arrêt maladie = '+fmt(T)+' classiques.';
+    'Samedi et dimanche = tout en heures sup. CP, récup astreinte, arrêt maladie, férié = '+fmt(T)+' classiques. '+
+    'Férié travaillé = '+fmt(T)+' + toutes les heures en sup.';
   var n=doc.getNumberOfPages();
   for(var i=1;i<=n;i++){
     doc.setPage(i);
@@ -1051,7 +1081,7 @@ $('#btn-csv').addEventListener('click',function(){
   var lines=['Date;Jour;Type;Compté;Classiques;Heures sup;Manquant;Compté (déc.);Classiques (déc.);Heures sup (déc.);Manquant (déc.)'];
   keys.forEach(function(k){
     var d=fromKey(k),p=dayVal(k);if(!p)return;
-    var type=p.mark?MARKS[p.mark].long:(isWeekend(k)?'Travaillé (week-end)':'Travaillé');
+    var type=p.mark?markLong(p):(isWeekend(k)?'Travaillé (week-end)':'Travaillé');
     lines.push([pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(),JOURS[isoDow(d)],type,hmm(p.t),hmm(p.c),hmm(p.s),hmm(p.d),dec(p.t),dec(p.c),dec(p.s),dec(p.d)].join(';'));
   });
   if(download('carnet-heures-'+todayKey+'.csv','﻿'+lines.join('\r\n'),'text/csv;charset=utf-8'))say('Fichier CSV exporté ('+keys.length+' jours).');
@@ -1071,10 +1101,15 @@ $('#file-import').addEventListener('change',function(){
     try{
       var d=JSON.parse(rd.result);
       var days=sanitize(d&&d.days?d.days:d),marks=sanitizeMarks(d&&d.marks);
-      var n=Object.keys(days).length+Object.keys(marks).length;
+      var touched={};Object.keys(days).concat(Object.keys(marks)).forEach(function(k){touched[k]=1;});
+      var n=Object.keys(touched).length;
       if(!n){say("Aucune heure trouvée dans ce fichier.",true);return;}
-      Object.keys(days).forEach(function(k){state.days[k]=days[k];delete state.marks[k];});
-      Object.keys(marks).forEach(function(k){state.marks[k]=marks[k];delete state.days[k];});
+      /* un jour importé remplace le jour existant (heures et/ou mention, ex. férié travaillé) */
+      Object.keys(touched).forEach(function(k){
+        delete state.days[k];delete state.marks[k];
+        if(days[k])state.days[k]=days[k];
+        if(marks[k])state.marks[k]=marks[k];
+      });
       if(d&&isFinite(d.threshold)&&d.threshold>0&&d.threshold<=1440)state.threshold=Math.round(d.threshold);
       save();render();say(n+(n>1?' jours importés.':' jour importé.'));
     }catch(e){say("Ce fichier n'est pas une sauvegarde du carnet.",true);}
